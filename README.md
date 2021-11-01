@@ -2,6 +2,7 @@
 
 ## Forked from: https://github.com/nvpro-samples/vk_raytracing_tutorial_KHR
 
-## Things i added:
+## Things i added: (most of the code taken from: https://pbr-book.org/)
 * New camera similar to a fps game to move in the world with wasd
-* Diffuse brdf (most of the code taken from: https://pbr-book.org/ chapters 8-9-14)
+* Area lights (for now only one light is supported) {ch 14}
+* Diffuse brdf {ch 8-9-14}
