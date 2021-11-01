@@ -2,3 +2,5 @@
 /build/*
 /out/build/x64-Debug
 /.vs
+log_vk_ray_tracing__advance_KHR.txt
+ray_tracing__advance/compile_shaders.bat
