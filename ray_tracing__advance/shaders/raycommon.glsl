@@ -26,6 +26,7 @@ struct hitPayload
   int  done;
   vec3 rayOrigin;
   vec3 rayDir;
+  //vec3 lastRayDir;
 };
 
 
@@ -35,6 +36,7 @@ struct rayLight
   float outLightDistance;
   vec3  outLightDir;
   float outIntensity;
+  float radius;
 };
 
 struct Implicit
@@ -56,6 +58,7 @@ struct Aabb
   vec3 minimum;
   vec3 maximum;
 };
+
 
 #define KIND_SPHERE 0
 #define KIND_CUBE 1

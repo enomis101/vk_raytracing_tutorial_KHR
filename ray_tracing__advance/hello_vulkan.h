@@ -86,7 +86,8 @@ public:
       {cos(deg2rad(12.5f))},  // lightSpotCutoff;
       {cos(deg2rad(17.5f))},  // lightSpotOuterCutoff;
       100.f,                  // light intensity
-      0                       // light type
+      0,                      // light type
+	  5.f					  //radius
   };
 
   // Array of objects and instances in the scene
@@ -103,7 +104,7 @@ public:
   VkDescriptorSetLayout       m_descSetLayout;
   VkDescriptorSet             m_descSet;
 
-  int  m_maxFrames{500};
+  int  m_maxFrames{50};
   void resetFrame();
   void updateFrame();
 
@@ -134,4 +135,203 @@ public:
   void addImplCube(nvmath::vec3f minumum, nvmath::vec3f maximum, int matId);
   void addImplMaterial(const MaterialObj& mat);
   void createImplictBuffers();
+
+  void modifyObjTransform();
+};
+
+#include <memory>
+#include <string>
+#include <stdexcept>
+
+template <typename... Args>
+std::string string_format(const std::string& format, Args... args)
+{
+  int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1;  // Extra space for '\0'
+  if(size_s <= 0)
+  {
+    throw std::runtime_error("Error during formatting.");
+  }
+  auto size = static_cast<size_t>(size_s);
+  auto buf  = std::make_unique<char[]>(size);
+  std::snprintf(buf.get(), size, format.c_str(), args...);
+  return std::string(buf.get(), buf.get() + size - 1);  // We don't want the '\0' inside
+}
+
+class TestSampleSphere
+{
+public:
+  static void CoordinateSystem(const nvmath::vec3f& v1, nvmath::vec3f& v2, nvmath::vec3f& v3);
+  static bool TestHandedness(const nvmath::vec3f& v1, const nvmath::vec3f& v2, const nvmath::vec3f& v3);
+  static void Test();
+  static std::string ToString(const nvmath::vec3f& v1) 
+  {
+	 std::string str;
+    return string_format("[ %f, %f, %f]", v1.x, v1.y, v1.z);
+  }
+
+  static std::string ToString(const nvmath::mat3f& m)
+  {
+	  std::string str;
+	  return string_format("| %f, %f, %f|\n| %f, %f, %f|\n| %f, %f, %f|", m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2]);
+  }
+
+
+#define Spectrum vec3
+
+  // BSDF Declarations
+
+  const uint BSDF_REFLECTION = 1 << 0;
+  const uint BSDF_TRANSMISSION = 1 << 1;
+  const uint BSDF_DIFFUSE = 1 << 2;
+  const uint BSDF_GLOSSY = 1 << 3;
+  const uint BSDF_SPECULAR = 1 << 4;
+  const uint BSDF_ALL = BSDF_DIFFUSE | BSDF_GLOSSY | BSDF_SPECULAR | BSDF_REFLECTION |
+	  BSDF_TRANSMISSION;
+
+  const uint BXDF_LAMBERTIAN_REFLECTION = 1;
+
+  struct BSDF
+  {
+	  uint reflectionType;
+	  uint bxdf;
+	  WaveFrontMaterial mat;
+	  mat4 worldToLocal;
+	  mat4 localToWorld;
+  };
+
+  struct SurfaceInteraction
+  {
+	  vec3 p;
+	  vec3 wo;
+	  vec3 n;
+	  BSDF bsdf;
+  };
+
+  struct SphereAreaLight
+  {
+	  vec3 position;
+	  mat4 transform;
+	  float radius;
+	  float intensity;
+  };
+
+  //UTILITY
+  float absCosTheta( vec3 v)
+  {
+	  return std::abs(v.z);
+  }
+
+  bool sameHemisphere( vec3 v1,  vec3 v2) {
+	  return v1.z * v2.z > 0;
+  }
+
+  vec2 concentricSampleDisk( vec2 u) {
+	  // Map uniform random numbers to $[-1,1]^2$
+	  vec2 uOffset = 2.f * u - vec2(1, 1);
+
+	  // Handle degeneracy at the origin
+	  if (uOffset.x == 0 && uOffset.y == 0) return vec2(0, 0);
+
+	  // Apply concentric mapping to point
+	  float theta, r;
+	  if (abs(uOffset.x) > abs(uOffset.y)) {
+		  r = uOffset.x;
+		  theta = PI_OVER4 * (uOffset.y / uOffset.x);
+	  }
+	  else {
+		  r = uOffset.y;
+		  theta = PI_OVER2 - PI_OVER4 * (uOffset.x / uOffset.y);
+	  }
+	  return r * vec2(cos(theta), sin(theta));
+  }
+
+  vec3 cosineSampleHemisphere( vec2 u) {
+	  vec2 d = concentricSampleDisk(u);
+	  float z = sqrt(std::max(0.f, 1 - d.x * d.x - d.y * d.y));
+	  return vec3(d.x, d.y, z);
+  }
+
+  //BSDF FUNCTIONS
+
+  Spectrum getBSDFValue( BSDF bsdf,  vec3 woW,  vec3 wiW)
+  {
+	  Spectrum f;
+	  //transform woW, wiW to local Coordinates
+	  vec3 wo = vec3(bsdf.worldToLocal * vec4(woW, 0.f));
+	  vec3 wi = vec3(bsdf.worldToLocal * vec4(wiW, 0.f));
+
+	  Spectrum r = bsdf.mat.diffuse;
+	  f = r * INV_PI;
+  }
+
+  float getBSDFPdf( BSDF bsdf,  vec3 woW,  vec3 wiW)
+  {
+	  float pdf;
+	  //transform woW, wiW to local Coordinates
+	  vec3 wo = vec3(bsdf.worldToLocal * vec4(woW, 0.f));
+	  vec3 wi = vec3(bsdf.worldToLocal * vec4(wiW, 0.f));
+
+
+	  pdf = sameHemisphere(wo, wi) ? absCosTheta(wi) * INV_PI : 0;
+
+	  return pdf;
+  }
+
+  Spectrum sampleBSDF( BSDF bsdf,  vec3 woW,  vec2 u,  vec3 wiW,  float pdf)
+  {
+	  Spectrum f;
+	  //transform woW, wiW to local Coordinates
+	  vec3 wo = vec3(bsdf.worldToLocal * vec4(woW, 0.f));
+	  vec3 wi;
+
+	// Cosine-sample the hemisphere, flipping the direction if necessary
+	// to make sure wi and wo are on the same hemisphere
+	wi = cosineSampleHemisphere(u);
+	if (wo.z < 0)
+	{
+		wi.z *= -1;
+	}
+	pdf = getBSDFPdf(bsdf, wo, wi);
+	f = getBSDFValue(bsdf, wo, wi);
+
+	  wiW = vec3(bsdf.localToWorld * vec4(wi, 0.f));
+	  return f;
+  }
+
+  static void testRandom();
+  //RANDOM
+  // Generate a random unsigned int from two unsigned int values, using 16 pairs
+// of rounds of the Tiny Encryption Algorithm. See Zafar, Olano, and Curtis,
+// "GPU Random Numbers via the Tiny Encryption Algorithm"
+  static uint tea(uint val0, uint val1)
+  {
+	  uint v0 = val0;
+	  uint v1 = val1;
+	  uint s0 = 0;
+
+	  for (uint n = 0; n < 16; n++)
+	  {
+		  s0 += 0x9e3779b9;
+		  v0 += ((v1 << 4) + 0xa341316c) ^ (v1 + s0) ^ ((v1 >> 5) + 0xc8013ea4);
+		  v1 += ((v0 << 4) + 0xad90777d) ^ (v0 + s0) ^ ((v0 >> 5) + 0x7e95761e);
+	  }
+
+	  return v0;
+  }
+
+  // Generate a random unsigned int in [0, 2^24) given the previous RNG state
+  // using the Numerical Recipes linear congruential generator
+  static uint lcg(uint& prev)
+  {
+	  uint LCG_A = 1664525u;
+	  uint LCG_C = 1013904223u;
+	  prev = (LCG_A * prev + LCG_C);
+	  return prev & 0x00FFFFFF;
+  }
+
+  // Generate a random float in [0, 1) given the previous RNG state
+  static float rnd(uint& prev)
+  {
+	  return (float(lcg(prev)) / float(0x01000000));
+  }
 };

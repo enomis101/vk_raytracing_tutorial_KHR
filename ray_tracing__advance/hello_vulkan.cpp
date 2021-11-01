@@ -566,3 +566,90 @@ void HelloVulkan::createImplictBuffers()
   instance.objIndex = static_cast<uint32_t>(m_objModel.size());
   m_instances.emplace_back(instance);
 }
+
+void HelloVulkan::modifyObjTransform()
+{
+	nvmath::mat4f lightTransf = nvmath::translation_mat4(m_pcRaster.lightPosition);
+
+	for (ObjInstance& inst : m_instances)
+	{
+		if (inst.objIndex == 3)
+		{
+			inst.transform = lightTransf;
+		}
+	}
+	m_raytrace.createTopLevelAS(m_instances, m_implObjects, true);
+}
+
+void TestSampleSphere::CoordinateSystem(const nvmath::vec3f& v1, nvmath::vec3f& v2, nvmath::vec3f& v3) 
+{
+  if(std::abs(v1.x) > std::abs(v1.y))
+    v2 = nvmath::vec3f(-v1.z, 0, v1.x) / std::sqrt(v1.x * v1.x + v1.z * v1.z);
+  else
+    v2 = nvmath::vec3f(0, v1.z, -v1.y) / std::sqrt(v1.y * v1.y + v1.z * v1.z);
+  v3 = nvmath::cross(v1, v2);
+}
+
+bool TestSampleSphere::TestHandedness(const nvmath::vec3f& v1, const nvmath::vec3f& v2, const nvmath::vec3f& v3) 
+{
+  return nvmath::dot(nvmath::cross(v1, v2), v3) > 0.f;
+}
+
+void TestSampleSphere::Test()
+{
+	{
+		nvmath::vec3f xAxis(1.f, 0.f, 0.f);
+		nvmath::vec3f yAxis(0.f, 1.f, 0.f);
+		nvmath::vec3f zAxis(0.f, 0.f, 1.f);
+
+		nvmath::vec3f v1 = xAxis;
+
+		nvmath::vec3f v2, v3;
+
+		CoordinateSystem(v1, v2, v3);
+		std::cout << ToString(v1) << ToString(v2) << ToString(v3) << std::endl;
+		bool test = TestHandedness(v1, v2, v3);
+
+		v1 = -v1;
+		CoordinateSystem(v1, v2, v3);
+		std::cout << ToString(v1) << ToString(v2) << ToString(v3) << std::endl;
+		bool test2 = TestHandedness(v1, v2, v3);
+
+		bool test3 = TestHandedness(xAxis, -yAxis, zAxis);
+	}
+
+	{
+		nvmath::vec3f v1{ 1,2,3 };
+		nvmath::vec3f v2{ 4,5,6 };
+		nvmath::vec3f v3{ 7,8,9 };
+
+		nvmath::mat3f m1(v1.x, v1.y, v1.z,v2.x,v2.y,v2.z,v3.x,v3.y,v3.z);
+		nvmath::mat3f m2 = nvmath::transpose(m1);
+		std::cout << ToString(m1) <<std::endl;
+		std::cout << ToString(m2) << std::endl;
+	}
+
+
+
+}
+
+void TestSampleSphere::testRandom()
+{
+	uint seed = tea(1521, 6151);
+	float r1;
+	float r2;
+	while (true)
+	{
+		r1 = rnd(seed);
+		r2 = rnd(seed);
+		vec2 u = vec2(r1, r2);
+		// Map uniform random numbers to $[-1,1]^2$
+		vec2 uOffset = 2.f * u - vec2(1, 1);
+
+		// Handle degeneracy at the origin
+		if (uOffset.x == 0 && uOffset.y == 0)
+		{
+			std::cout << seed << std::endl;
+		}
+	}
+}

@@ -79,6 +79,7 @@ struct PushConstantRaster
   uint  objIndex;
   float lightIntensity;
   int   lightType;
+  float lightRadius;
 };
 
 
@@ -89,6 +90,7 @@ struct PushConstantRay
   vec3  lightPosition;
   float lightIntensity;
   int   lightType;
+  float lightRadius;
 };
 
 struct Vertex  // See ObjLoader, copy of VertexObj, could be compressed for device

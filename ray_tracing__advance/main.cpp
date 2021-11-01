@@ -36,6 +36,9 @@
 #include "nvvk/context_vk.hpp"
 
 #include <random>
+#include <chrono>
+#include <thread>
+#include <ctime>  
 
 //////////////////////////////////////////////////////////////////////////
 #define UNUSED(x) (void)(x)
@@ -51,6 +54,14 @@ static void onErrorCallback(int error, const char* description)
   fprintf(stderr, "GLFW Error %d: %s\n", error, description);
 }
 
+enum LightType
+{
+  POINT_LIGHT = 0,
+  SPOT_LIGHT,
+  INFINITE_LIGHT,
+  AREA_LIGHT
+};
+
 // Extra UI
 void renderUI(HelloVulkan& helloVk)
 {
@@ -61,26 +72,28 @@ void renderUI(HelloVulkan& helloVk)
   {
     auto& pc = helloVk.m_pcRaster;
 
-    changed |= ImGui::RadioButton("Point", &pc.lightType, 0);
+    changed |= ImGui::RadioButton("Point", &pc.lightType, POINT_LIGHT);
     ImGui::SameLine();
-    changed |= ImGui::RadioButton("Spot", &pc.lightType, 1);
+    changed |= ImGui::RadioButton("Spot", &pc.lightType, SPOT_LIGHT);
     ImGui::SameLine();
-    changed |= ImGui::RadioButton("Infinite", &pc.lightType, 2);
+    changed |= ImGui::RadioButton("Infinite", &pc.lightType, INFINITE_LIGHT);
+    ImGui::SameLine();
+    changed |= ImGui::RadioButton("Area", &pc.lightType, AREA_LIGHT);
 
 
-    if(pc.lightType < 2)
+    if(pc.lightType != INFINITE_LIGHT)
     {
       changed |= ImGui::SliderFloat3("Light Position", &pc.lightPosition.x, -20.f, 20.f);
     }
-    if(pc.lightType > 0)
+    if(pc.lightType != POINT_LIGHT && pc.lightType != AREA_LIGHT)
     {
       changed |= ImGui::SliderFloat3("Light Direction", &pc.lightDirection.x, -1.f, 1.f);
     }
-    if(pc.lightType < 2)
+    if(pc.lightType != INFINITE_LIGHT)
     {
-      changed |= ImGui::SliderFloat("Light Intensity", &pc.lightIntensity, 0.f, 500.f);
+      changed |= ImGui::SliderFloat("Light Intensity", &pc.lightIntensity, 0.f, 1.f);
     }
-    if(pc.lightType == 1)
+    if(pc.lightType == SPOT_LIGHT)
     {
       float dCutoff    = rad2deg(acos(pc.lightSpotCutoff));
       float dOutCutoff = rad2deg(acos(pc.lightSpotOuterCutoff));
@@ -90,6 +103,10 @@ void renderUI(HelloVulkan& helloVk)
 
       pc.lightSpotCutoff      = cos(deg2rad(dCutoff));
       pc.lightSpotOuterCutoff = cos(deg2rad(dOutCutoff));
+    }
+    if(pc.lightType == AREA_LIGHT)
+    {
+      changed |= ImGui::SliderFloat("Radius", &pc.lightRadius, 1.f, 5.f);
     }
   }
 
@@ -104,6 +121,9 @@ void renderUI(HelloVulkan& helloVk)
 static int const SAMPLE_WIDTH  = 1280;
 static int const SAMPLE_HEIGHT = 720;
 
+
+//Assuming Right Handed Coordinate System RHCS, use ctrl + shift + f on: #Assume RHCS
+//to find places where this assumption is used
 
 //--------------------------------------------------------------------------------------------------
 // Application Entry
@@ -162,7 +182,8 @@ int main(int argc, char** argv)
   VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtPipelineFeature{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR};
   contextInfo.addDeviceExtension(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME, false, &rtPipelineFeature);  // To use vkCmdTraceRaysKHR
   contextInfo.addDeviceExtension(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);  // Required by ray tracing pipeline
-
+  contextInfo.addDeviceExtension(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
+ 
   // Creating Vulkan base application
   nvvk::Context vkctx{};
   vkctx.initInstance(contextInfo);
@@ -194,11 +215,13 @@ int main(int argc, char** argv)
   helloVk.loadModel(nvh::findFile("media/scenes/wuson.obj", defaultSearchPaths, true),
                     nvmath::scale_mat4(nvmath::vec3f(0.5f)) * nvmath::translation_mat4(nvmath::vec3f(0.0f, 0.0f, 6.0f)));
 
+ // helloVk.loadModel(nvh::findFile("media/scenes/sphere.obj", defaultSearchPaths, true));
+
   std::random_device              rd;         // Will be used to obtain a seed for the random number engine
   std::mt19937                    gen(rd());  // Standard mersenne_twister_engine seeded with rd()
   std::normal_distribution<float> dis(2.0f, 2.0f);
   std::normal_distribution<float> disn(0.5f, 0.2f);
-  auto                            wusonIndex = static_cast<int>(helloVk.m_objModel.size() - 1);
+  auto                            wusonIndex = static_cast<int>(2);
 
   for(int n = 0; n < 50; ++n)
   {
@@ -213,21 +236,21 @@ int main(int argc, char** argv)
     helloVk.m_instances.push_back(inst);
   }
 
-  // Creation of implicit geometry
-  MaterialObj mat;
-  // Reflective
-  mat.diffuse   = nvmath::vec3f(0, 0, 0);
-  mat.specular  = nvmath::vec3f(1.f);
-  mat.shininess = 0.0;
-  mat.illum     = 3;
-  helloVk.addImplMaterial(mat);
-  // Transparent
-  mat.diffuse  = nvmath::vec3f(0.4, 0.4, 1);
-  mat.illum    = 4;
-  mat.dissolve = 0.5;
-  helloVk.addImplMaterial(mat);
-  helloVk.addImplCube({-6.1, 0, -6}, {-6, 10, 6}, 0);
-  helloVk.addImplSphere({1, 2, 4}, 1.f, 1);
+  //// Creation of implicit geometry
+  //MaterialObj mat;
+  //// Reflective
+  //mat.diffuse   = nvmath::vec3f(0, 0, 0);
+  //mat.specular  = nvmath::vec3f(1.f);
+  //mat.shininess = 0.0;
+  //mat.illum     = 3;
+  //helloVk.addImplMaterial(mat);
+  //// Transparent
+  //mat.diffuse  = nvmath::vec3f(0.4, 0.4, 1);
+  //mat.illum    = 4;
+  //mat.dissolve = 0.5;
+  //helloVk.addImplMaterial(mat);
+  //helloVk.addImplCube({-6.1, 0, -6}, {-6, 10, 6}, 0);
+  //helloVk.addImplSphere({1, 2, 4}, 1.f, 1);
 
 
   helloVk.initOffscreen();
@@ -253,9 +276,26 @@ int main(int argc, char** argv)
   helloVk.setupGlfwCallbacks(window);
   ImGui_ImplGlfw_InitForVulkan(window, true);
 
+  //#TEST check transform handedness
+  //for(int i = 0; i < helloVk.m_instances.size(); ++i)
+  //{
+  //  nvmath::mat4f mat   = helloVk.m_instances[i].transform;
+  //  nvmath::vec3f xAxis = mat * nvmath::vec4f(1.f, 0.f, 0.f, 0.f);
+  //  nvmath::vec3f yAxis = mat * nvmath::vec4f(0.f, 1.f, 0.f, 0.f);
+  //  nvmath::vec3f zAxis = mat * nvmath::vec4f(0.f, 0.f, 1.f, 0.f);
+  //  bool test = TestSampleSphere::TestHandedness(xAxis, yAxis, zAxis);
+  //}
+
+  //Set initial light parameters
+  helloVk.m_pcRaster.lightPosition = vec3(1.f, 5.f, 0.f);
+  helloVk.m_pcRaster.lightIntensity = 0.5f;
+
   // Main loop
+  int FPS = 60;
   while(!glfwWindowShouldClose(window))
   {
+	auto start = std::chrono::system_clock::now();
+
     glfwPollEvents();
     if(helloVk.isMinimized())
       continue;
@@ -274,14 +314,21 @@ int main(int argc, char** argv)
       changed |= ImGui::ColorEdit3("Clear color", reinterpret_cast<float*>(&clearColor));
       // Switch between raster and ray tracing
       changed |= ImGui::Checkbox("Ray Tracer mode", &useRaytracer);
+
+	  changed |= ImGui::SliderInt("Debug Mode", &helloVk.m_pcRaster.debug,0,2);
       if(changed)
         helloVk.resetFrame();
 
       renderUI(helloVk);
+	  ImGui::SliderInt("Max FPS", &FPS, 1, 120);
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGuiH::Control::Info("", "", "(F10) Toggle Pane", ImGuiH::Control::Flags::Disabled);
       ImGuiH::Panel::End();
     }
+
+	CameraManip.updateKeyboardInput(1 / float(FPS));
+
+	//helloVk.modifyObjTransform();
 
     // Start rendering the scene
     helloVk.prepareFrame();
@@ -346,6 +393,14 @@ int main(int argc, char** argv)
     // Submit for display
     vkEndCommandBuffer(cmdBuf);
     helloVk.submitFrame();
+
+	// Some computation here
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	std::chrono::milliseconds elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed_seconds);
+	std::chrono::milliseconds x = std::chrono::milliseconds(1000 / FPS);
+	std::chrono::milliseconds ms_to_sleep = x - elapsed_ms;
+	std::this_thread::sleep_for(ms_to_sleep);
   }
 
   // Cleanup
@@ -357,6 +412,9 @@ int main(int argc, char** argv)
 
   glfwDestroyWindow(window);
   glfwTerminate();
+
+  TestSampleSphere::Test();
+  //TestSampleSphere::testRandom();
 
   return 0;
 }

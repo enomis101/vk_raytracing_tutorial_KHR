@@ -35,7 +35,7 @@ public:
   auto objectToVkGeometryKHR(const ObjModel& model);
   auto implicitToVkGeometryKHR(const ImplInst& implicitObj);
   void createBottomLevelAS(std::vector<ObjModel>& models, ImplInst& implicitObj);
-  void createTopLevelAS(std::vector<ObjInstance>& instances, ImplInst& implicitObj);
+  void createTopLevelAS(std::vector<ObjInstance>& instances, ImplInst& implicitObj,bool update = false);
   void createRtDescriptorSet(const VkImageView& outputImage);
   void updateRtDescriptorSet(const VkImageView& outputImage);
   void createRtPipeline(VkDescriptorSetLayout& sceneDescLayout);

@@ -55,6 +55,7 @@ layout(binding = eTextures) uniform sampler2D[] textureSamplers;
 
 void main()
 {
+	return;
   // Material of the object
   ObjDesc    objResource = objDesc.i[pcRaster.objIndex];
   MatIndices matIndices  = MatIndices(objResource.materialIndexAddress);

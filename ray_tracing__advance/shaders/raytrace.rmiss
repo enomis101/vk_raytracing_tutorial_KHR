@@ -34,5 +34,6 @@ layout(push_constant) uniform _PushConstantRay
 
 void main()
 {
+	return;
   prd.hitValue = pcRay.clearColor.xyz * 0.8;
 }

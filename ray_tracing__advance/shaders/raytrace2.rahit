@@ -42,6 +42,7 @@ layout(set = 1, binding = eImplicits, scalar) buffer allImplicits_ {Implicit i[]
 
 void main()
 {
+	return;
   // Material of the object
   Implicit impl = allImplicits.i[gl_PrimitiveID];
 

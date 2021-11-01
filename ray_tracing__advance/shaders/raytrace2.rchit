@@ -27,6 +27,8 @@
 
 #include "raycommon.glsl"
 #include "wavefront.glsl"
+#include "random.glsl"
+#include "sample.glsl"
 
 hitAttributeEXT vec2 attribs;
 
@@ -53,6 +55,9 @@ layout(location = 3) callableDataEXT rayLight cLight;
 
 void main()
 {
+
+	return;
+
   vec3 worldPos = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
 
   Implicit impl = allImplicits.i[gl_PrimitiveID];
@@ -82,7 +87,69 @@ void main()
   }
 
   cLight.inHitPosition = worldPos;
-  executeCallableEXT(pcRay.lightType, 3);
+//#define DONT_USE_CALLABLE
+#if defined(DONT_USE_CALLABLE)
+  // Point light
+  if(pcRay.lightType == 0)
+  {
+    vec3  lDir              = pcRay.lightPosition - cLight.inHitPosition;
+    float lightDistance     = length(lDir);
+    cLight.outIntensity     = pcRay.lightIntensity / (lightDistance * lightDistance);
+    cLight.outLightDir      = normalize(lDir);
+    cLight.outLightDistance = lightDistance;
+  }
+  else if(pcRay.lightType == 1)
+  {
+    vec3 lDir               = pcRay.lightPosition - cLight.inHitPosition;
+    cLight.outLightDistance = length(lDir);
+    cLight.outIntensity     = pcRay.lightIntensity / (cLight.outLightDistance * cLight.outLightDistance);
+    cLight.outLightDir      = normalize(lDir);
+    float theta             = dot(cLight.outLightDir, normalize(-pcRay.lightDirection));
+    float epsilon           = pcRay.lightSpotCutoff - pcRay.lightSpotOuterCutoff;
+    float spotIntensity     = clamp((theta - pcRay.lightSpotOuterCutoff) / epsilon, 0.0, 1.0);
+    cLight.outIntensity *= spotIntensity;
+  }
+  else if(pcRay.lightType == 2) // Directional light
+  {
+    cLight.outLightDir      = normalize(-pcRay.lightDirection);
+    cLight.outIntensity     = 1.0;
+    cLight.outLightDistance = 10000000;
+  }
+  else	// Area light
+  {
+	//debugPrintfEXT("My float is %f", 5.f);
+	//http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/
+	//colum major order
+    mat4 sphereTransform = mat4(
+        vec4( 1.0, 0.0, 0.0, 0.0),
+        vec4( 0.0, 1.0, 0.0, 0.0),
+        vec4( 0.0, 0.0, 1.0, 0.0),
+        vec4( pcRay.lightPosition, 1.0) );
+	
+	//mat4 sphereInvTranspTransf = transpose(inverse(sphereTransform));
+	Sphere sphere;
+	sphere.center = pcRay.lightPosition;
+	sphere.radius = pcRay.lightRadius;
+
+	vec2 u = vec2(rnd(prd.seed), rnd(prd.seed));
+
+	vec3 samplePoint,sampleNormal;
+	vec3  lDir              = pcRay.lightPosition - cLight.inHitPosition;
+	float pdf = 0.f;
+	
+	if(sampleSphere(sphere, sphereTransform, cLight.inHitPosition, u,samplePoint, sampleNormal,pdf))
+	{
+		lDir = samplePoint - cLight.inHitPosition;
+	}
+	float lightDistance     = length(lDir);
+	cLight.outIntensity     = pcRay.lightIntensity / (lightDistance * lightDistance);
+	cLight.outLightDir      = normalize(lDir);
+	cLight.outLightDistance = lightDistance;
+	cLight.radius = pcRay.lightRadius;
+  }
+#else
+  //executeCallableEXT(pcRay.lightType, 3);
+#endif
 
   // Material of the object
   ObjDesc           objResource = objDesc.i[gl_InstanceCustomIndexEXT];

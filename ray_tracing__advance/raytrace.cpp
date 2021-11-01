@@ -26,6 +26,9 @@
 #include "nvvk/shaders_vk.hpp"
 #include "obj_loader.h"
 #include "nvvk/buffers_vk.hpp"
+#include <cstdlib>
+#include <ctime>
+
 
 extern std::vector<std::string> defaultSearchPaths;
 
@@ -45,6 +48,7 @@ void Raytracer::setup(const VkDevice& device, const VkPhysicalDevice& physicalDe
   m_rtBuilder.setup(m_device, allocator, m_graphicsQueueIndex);
   m_sbtWrapper.setup(device, queueFamily, allocator, m_rtProperties);
   m_debug.setup(device);
+  std::srand(std::time(nullptr)); // use current time as seed for random generator
 }
 
 
@@ -154,7 +158,7 @@ void Raytracer::createBottomLevelAS(std::vector<ObjModel>& models, ImplInst& imp
                                      | VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_COMPACTION_BIT_KHR);
 }
 
-void Raytracer::createTopLevelAS(std::vector<ObjInstance>& instances, ImplInst& implicitObj)
+void Raytracer::createTopLevelAS(std::vector<ObjInstance>& instances, ImplInst& implicitObj,bool update)
 {
   std::vector<VkAccelerationStructureInstanceKHR> tlas;
 
@@ -186,7 +190,7 @@ void Raytracer::createTopLevelAS(std::vector<ObjInstance>& instances, ImplInst& 
     tlas.emplace_back(rayInst);
   }
 
-  m_rtBuilder.buildTlas(tlas, VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR);
+  m_rtBuilder.buildTlas(tlas, VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_BUILD_BIT_KHR | VK_BUILD_ACCELERATION_STRUCTURE_ALLOW_UPDATE_BIT_KHR, update);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -254,6 +258,7 @@ void Raytracer::createRtPipeline(VkDescriptorSetLayout& sceneDescLayout)
     eCall0,
     eCall1,
     eCall2,
+    eCall3,
     eShaderGroupCount
   };
 
@@ -307,6 +312,10 @@ void Raytracer::createRtPipeline(VkDescriptorSetLayout& sceneDescLayout)
   stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/light_inf.rcall.spv", true, defaultSearchPaths, true));
   stage.stage    = VK_SHADER_STAGE_CALLABLE_BIT_KHR;
   stages[eCall2] = stage;
+  // Call3
+  stage.module = nvvk::createShaderModule(m_device, nvh::loadFile("spv/light_area.rcall.spv", true, defaultSearchPaths, true));
+  stage.stage    = VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+  stages[eCall3] = stage;
 
 
   // Shader groups
@@ -356,6 +365,8 @@ void Raytracer::createRtPipeline(VkDescriptorSetLayout& sceneDescLayout)
   group.generalShader = eCall1;
   m_rtShaderGroups.push_back(group);
   group.generalShader = eCall2;
+  m_rtShaderGroups.push_back(group);
+  group.generalShader = eCall3;
   m_rtShaderGroups.push_back(group);
 
 
@@ -420,7 +431,9 @@ void Raytracer::raytrace(const VkCommandBuffer& cmdBuf,
   m_pcRay.lightSpotOuterCutoff = sceneConstants.lightSpotOuterCutoff;
   m_pcRay.lightType            = sceneConstants.lightType;
   m_pcRay.frame                = sceneConstants.frame;
+  m_pcRay.lightRadius		   = sceneConstants.lightRadius;
 
+  m_pcRay.debug = sceneConstants.debug;
 
   std::vector<VkDescriptorSet> descSets{m_rtDescSet, sceneDescSet};
   vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_rtPipeline);

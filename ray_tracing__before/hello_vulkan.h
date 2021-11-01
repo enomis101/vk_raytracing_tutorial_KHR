@@ -25,6 +25,9 @@
 #include "nvvk/memallocator_dma_vk.hpp"
 #include "nvvk/resourceallocator_vk.hpp"
 #include "shaders/host_device.h"
+// #VKRay
+//Helper class to build ASs
+#include "nvvk/raytraceKHR_vk.hpp"
 
 //--------------------------------------------------------------------------------------------------
 // Simple rasterizer of OBJ objects
@@ -48,6 +51,12 @@ public:
   void onResize(int /*w*/, int /*h*/) override;
   void destroyResources();
   void rasterize(const VkCommandBuffer& cmdBuff);
+
+  // #VKRay
+  void initRayTracing();
+  VkPhysicalDeviceRayTracingPipelinePropertiesKHR m_rtProperties{VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR};
+  nvvk::RaytracingBuilderKHR m_rtBuilder;
+
 
   // The OBJ model
   struct ObjModel
@@ -81,6 +90,11 @@ public:
   std::vector<ObjDesc>     m_objDesc;    // Model description for device access
   std::vector<ObjInstance> m_instances;  // Scene model instances
 
+  
+  auto objectToVkGeometryKHR(const ObjModel& model);
+  void createBottomLevelAS();
+  void createTopLevelAS();
+
 
   // Graphic pipeline
   VkPipelineLayout            m_pipelineLayout;
@@ -89,6 +103,23 @@ public:
   VkDescriptorPool            m_descPool;
   VkDescriptorSetLayout       m_descSetLayout;
   VkDescriptorSet             m_descSet;
+
+  void createRtPipeline();
+
+  std::vector<VkRayTracingShaderGroupCreateInfoKHR> m_rtShaderGroups;
+  VkPipelineLayout                                  m_rtPipelineLayout;
+  VkPipeline                                        m_rtPipeline;
+
+  // Push constant for ray tracer
+  PushConstantRay m_pcRay{};
+
+  void createRtShaderBindingTable();
+
+  nvvk::Buffer                    m_rtSBTBuffer;
+  VkStridedDeviceAddressRegionKHR m_rgenRegion{};
+  VkStridedDeviceAddressRegionKHR m_missRegion{};
+  VkStridedDeviceAddressRegionKHR m_hitRegion{};
+  VkStridedDeviceAddressRegionKHR m_callRegion{};
 
   nvvk::Buffer m_bGlobals;  // Device-Host of the camera matrices
   nvvk::Buffer m_bObjDesc;  // Device buffer of the OBJ descriptions
@@ -99,6 +130,8 @@ public:
   nvvk::ResourceAllocatorDma m_alloc;  // Allocator for buffer, images, acceleration structures
   nvvk::DebugUtil            m_debug;  // Utility to name objects
 
+  void raytrace(const VkCommandBuffer& cmdBuf, const nvmath::vec4f& clearColor);
+
 
   // #Post - Draw the rendered image on a quad using a tonemapper
   void createOffscreenRender();
@@ -106,6 +139,14 @@ public:
   void createPostDescriptor();
   void updatePostDescriptorSet();
   void drawPost(VkCommandBuffer cmdBuf);
+
+  void createRtDescriptorSet();
+  void updateRtDescriptorSet();
+
+  nvvk::DescriptorSetBindings m_rtDescSetLayoutBind;
+  VkDescriptorPool            m_rtDescPool;
+  VkDescriptorSetLayout       m_rtDescSetLayout;
+  VkDescriptorSet             m_rtDescSet;
 
   nvvk::DescriptorSetBindings m_postDescSetLayoutBind;
   VkDescriptorPool            m_postDescPool{VK_NULL_HANDLE};

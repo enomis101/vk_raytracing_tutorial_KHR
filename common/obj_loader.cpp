@@ -39,7 +39,14 @@ void ObjLoader::loadModel(const std::string& filename)
   {
     MaterialObj m;
     m.ambient       = nvmath::vec3f(material.ambient[0], material.ambient[1], material.ambient[2]);
-    m.diffuse       = nvmath::vec3f(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
+	if (filename.find("wuson") != std::string::npos)
+	{
+		m.diffuse = nvmath::vec3f(0.9, 0.1, 0.1);
+	}
+	else
+	{
+		m.diffuse = nvmath::vec3f(material.diffuse[0], material.diffuse[1], material.diffuse[2]);
+	}
     m.specular      = nvmath::vec3f(material.specular[0], material.specular[1], material.specular[2]);
     m.emission      = nvmath::vec3f(material.emission[0], material.emission[1], material.emission[2]);
     m.transmittance = nvmath::vec3f(material.transmittance[0], material.transmittance[1], material.transmittance[2]);
@@ -52,7 +59,7 @@ void ObjLoader::loadModel(const std::string& filename)
       m_textures.push_back(material.diffuse_texname);
       m.textureID = static_cast<int>(m_textures.size()) - 1;
     }
-
+	m.bxdf = 1;
     m_materials.emplace_back(m);
   }
 

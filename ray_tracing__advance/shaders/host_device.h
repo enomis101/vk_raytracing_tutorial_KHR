@@ -31,6 +31,13 @@ using mat4 = nvmath::mat4f;
 using uint = unsigned int;
 #endif
 
+#define PI 3.14159265358979323846f
+#define INV_PI 0.31830988618379067154f
+#define INV_2PI  0.15915494309189533577
+#define INV_4PI  0.07957747154594766788
+#define PI_OVER2 1.57079632679489661923
+#define PI_OVER4 0.78539816339744830961
+
 // clang-format off
 #ifdef __cplusplus // Descriptor binding helper for C++ and GLSL
  #define START_BINDING(a) enum a {
@@ -39,6 +46,9 @@ using uint = unsigned int;
  #define START_BINDING(a)  const uint
  #define END_BINDING() 
 #endif
+
+#define DEBUG_RGEN 1
+#define DEBUG_RCHIT 2
 
 START_BINDING(SceneBindings)
   eGlobals   = 0,  // Global uniform containing camera matrices
@@ -82,7 +92,9 @@ struct PushConstantRaster
   float lightSpotOuterCutoff;
   float lightIntensity;
   int   lightType;
+  float lightRadius;
   int   frame;
+  int debug;
 };
 
 
@@ -98,6 +110,8 @@ struct PushConstantRay
   float lightIntensity;
   int   lightType;
   int   frame;
+  float lightRadius;
+  int debug;
 };
 
 struct Vertex  // See ObjLoader, copy of VertexObj, could be compressed for device
@@ -120,6 +134,7 @@ struct WaveFrontMaterial  // See ObjLoader, copy of MaterialObj, could be compre
   float dissolve;  // 1 == opaque; 0 == fully transparent
   int   illum;     // illumination model (see http://www.fileformat.info/format/material/)
   int   textureId;
+  int bxdf;
 };
 
 

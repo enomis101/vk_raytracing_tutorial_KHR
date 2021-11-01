@@ -55,6 +55,7 @@ out gl_PerVertex
 
 void main()
 {
+
   vec3 origin = vec3(uni.viewInverse * vec4(0, 0, 0, 1));
 
   o_worldPos = vec3(pcRaster.modelMatrix * vec4(i_position, 1.0));

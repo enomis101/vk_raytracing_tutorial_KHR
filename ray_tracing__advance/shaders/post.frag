@@ -31,7 +31,9 @@ pushc;
 
 void main()
 {
+
   vec2  uv    = outUV;
   float gamma = 1. / 2.2;
-  fragColor   = pow(texture(noisyTxt, uv).rgba, vec4(gamma));
+ fragColor   = pow(texture(noisyTxt, uv).rgba, vec4(gamma));
+ //fragColor = vec4(0.f,1.f,0.f, 1.f);
 }

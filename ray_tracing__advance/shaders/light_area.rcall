@@ -1,0 +1,67 @@
+/*
+ * Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * SPDX-FileCopyrightText: Copyright (c) 2019-2021 NVIDIA CORPORATION
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#version 460 core
+#extension GL_EXT_ray_tracing : enable
+#extension GL_GOOGLE_include_directive : enable
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
+
+#include "raycommon.glsl"
+#include "host_device.h"
+#include "random.glsl"
+#include "sample.glsl"
+
+layout(location = 3) callableDataInEXT rayLight cLight;
+
+layout(push_constant) uniform _PushConstantRay
+{
+  PushConstantRay pcRay;
+};
+
+
+void main()
+{
+//	//http://www.opengl-tutorial.org/beginners-tutorials/tutorial-3-matrices/
+//	//colum major order
+//    mat4 sphereTransform = mat4(
+//        vec4( 1.0, 0.0, 0.0, 0.0),
+//        vec4( 0.0, 1.0, 0.0, 0.0),
+//        vec4( 0.0, 0.0, 1.0, 0.0),
+//        vec4( pcRay.lightPosition, 1.0) );
+//	
+//	//mat4 sphereInvTranspTransf = transpose(inverse(sphereTransform));
+//	Sphere sphere;
+//	sphere.center = pcRay.lightPosition;
+//	sphere.radius = pcRay.lightRadius;
+//
+//	vec2 u = vec2(rnd(seed), rnd(seed));
+//
+//	vec3 samplePoint,sampleNormal;
+//	vec3  lDir              = pcRay.lightPosition - cLight.inHitPosition;
+//	
+//	if(sampleSphere(sphere, sphereTransform, cLight.inHitPosition, u,samplePoint, sampleNormal))
+//	{
+//		lDir = samplePoint - cLight.inHitPosition;
+//	}
+//	float lightDistance     = length(lDir);
+//	cLight.outIntensity     = pcRay.lightIntensity / (lightDistance * lightDistance);
+//	cLight.outLightDir      = normalize(lDir);
+//	cLight.outLightDistance = lightDistance;
+//	cLight.radius = pcRay.lightRadius;
+}
