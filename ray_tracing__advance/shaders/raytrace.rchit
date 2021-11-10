@@ -250,7 +250,7 @@ void main()
 
 	// SAMPLE ILLUMINATION FROM ONE LIGHT TO FIND PATH CONTRIBUTION.
 	// SKIP FOR SPECULAR MATERIAL
-	if(!isSpecular(bsdf.reflectionType))
+	if(!isSpecular(bsdf.bxdfs[0].reflectionType))
 	{
 		prd.hitValue = uniformSampleOneLight(si,seed);
 	}
@@ -273,7 +273,7 @@ void main()
 			}
 			else if(pdf == 0.f)
 			{
-				prd.hitValue = vec3(bsdf.bxdf,1.f,0.f);
+				prd.hitValue = vec3(bsdf.bxdfs[0].type,1.f,0.f);
 			}
 		}
 		return;

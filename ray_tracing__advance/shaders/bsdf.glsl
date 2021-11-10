@@ -14,13 +14,26 @@ BSDF_TRANSMISSION;
 
 const uint BXDF_LAMBERTIAN_REFLECTION = 1;
 
+#define MAX_ADD_FLOAT_DATA 5
+#define MAX_ADD_VEC3_DATA 1
+#define MAX_BXDFS 1
+
+struct BXDF
+{
+	uint reflectionType;
+	uint type;
+	Spectrum R;
+	float additionalFloatData[MAX_ADD_FLOAT_DATA];
+	vec3 additionalVec3Data[MAX_ADD_VEC3_DATA];
+};
+
 struct BSDF
 {
-  uint reflectionType;
-  uint bxdf;
-  WaveFrontMaterial mat;
+  //WaveFrontMaterial mat;
   mat3 localToWorld;
   mat3 worldToLocal;
+  BXDF bxdfs[MAX_BXDFS];
+  int bxdfsNum;
 };
 
 struct SurfaceInteraction
@@ -52,28 +65,24 @@ float powerHeuristic(in int nf, in float fPdf,in int ng, in float gPdf)
 
 void constructBSDF(in WaveFrontMaterial mat, in vec3 nx, in vec3 ny, in vec3 nz, out BSDF bsdf)
 {
-//	switch(mat.bxdf)
-//	{
-//	case BXDF_LAMBERTIAN_REFLECTION:
-//	{
-//		bsdf.bxdf = BXDF_LAMBERTIAN_REFLECTION;
-//		bsdf.reflectionType =BSDF_REFLECTION | BSDF_DIFFUSE;
-//		bsdf.mat = mat;
-//		//Local to World matrix has axis as column
-//		mat3 localToWorld = mat3(nx,ny,nz);
-//		bsdf.localToWorld = localToWorld;
-//		bsdf.worldToLocal = transpose(localToWorld);
-//		
-//		break;
-//	}
-//	};
-	bsdf.bxdf = BXDF_LAMBERTIAN_REFLECTION;
-	bsdf.reflectionType =BSDF_REFLECTION | BSDF_DIFFUSE;
-	bsdf.mat = mat;
 	//Local to World matrix has axis as column
 	mat3 localToWorld = mat3(nx,ny,nz);
 	bsdf.localToWorld = localToWorld;
 	bsdf.worldToLocal = transpose(localToWorld);
+
+	switch(mat.bxdf)
+	{
+		case BXDF_LAMBERTIAN_REFLECTION:
+		{
+			bsdf.bxdfsNum = 1;
+			bsdf.bxdfs[0].type = BXDF_LAMBERTIAN_REFLECTION;
+			bsdf.bxdfs[0].reflectionType =BSDF_REFLECTION | BSDF_DIFFUSE;
+			bsdf.bxdfs[0].R = mat.diffuse;
+			break;
+		}
+	};
+
+
 }
 
 //UTILITY
@@ -114,6 +123,21 @@ vec3 cosineSampleHemisphere(in vec2 u) {
 
 //BSDF FUNCTIONS
 
+Spectrum getBSDFValueLocal(in BSDF bsdf, in vec3 wo, in vec3 wi)
+{
+	Spectrum f;
+
+	switch(bsdf.bxdfs[0].type)
+	{
+	case BXDF_LAMBERTIAN_REFLECTION:
+	{
+		f = bsdf.bxdfs[0].R * INV_PI;
+		break;
+	}
+	};
+	return f;
+}
+
 Spectrum getBSDFValue(in BSDF bsdf, in vec3 woW, in vec3 wiW)
 {
 	Spectrum f;
@@ -121,32 +145,22 @@ Spectrum getBSDFValue(in BSDF bsdf, in vec3 woW, in vec3 wiW)
 	vec3 wo = bsdf.worldToLocal * woW;
 	vec3 wi = bsdf.worldToLocal * wiW;
 
-	switch(bsdf.bxdf)
-	{
-	case BXDF_LAMBERTIAN_REFLECTION:
-	{
-		Spectrum r = bsdf.mat.diffuse;
-		f = r * INV_PI;
-		break;
-	}
-	};
-	return f;
+	return getBSDFValueLocal(bsdf, wo, wi);
 }
 
-Spectrum getBSDFValueLocal(in BSDF bsdf, in vec3 wo, in vec3 wi)
+float getBSDFPdfLocal(in BSDF bsdf, in vec3 wo, in vec3 wi)
 {
-	Spectrum f;
+	float pdf;
 
-	switch(bsdf.bxdf)
+	switch(bsdf.bxdfs[0].type)
 	{
 	case BXDF_LAMBERTIAN_REFLECTION:
 	{
-		Spectrum r = bsdf.mat.diffuse;
-		f = r * INV_PI;
+		pdf = sameHemisphere(wo, wi) ? absCosTheta(wi) * INV_PI : 0;
 		break;
 	}
 	};
-	return f;
+	return pdf;
 }
 
 
@@ -157,31 +171,9 @@ float getBSDFPdf(in BSDF bsdf, in vec3 woW, in vec3 wiW)
 	vec3 wo = bsdf.worldToLocal * woW;
 	vec3 wi = bsdf.worldToLocal * wiW;
 
-	switch(bsdf.bxdf)
-	{
-	case BXDF_LAMBERTIAN_REFLECTION:
-	{
-		pdf = sameHemisphere(wo, wi) ? absCosTheta(wi) * INV_PI : 0;
-		break;
-	}
-	};
-	return pdf;
+	return getBSDFPdfLocal(bsdf,wo, wi);
 }
 
-float getBSDFPdfLocal(in BSDF bsdf, in vec3 wo, in vec3 wi)
-{
-	float pdf;
-
-	switch(bsdf.bxdf)
-	{
-	case BXDF_LAMBERTIAN_REFLECTION:
-	{
-		pdf = sameHemisphere(wo, wi) ? absCosTheta(wi) * INV_PI : 0;
-		break;
-	}
-	};
-	return pdf;
-}
 
 Spectrum sampleBSDF(in BSDF bsdf, in vec3 woW, in vec2 u, out vec3 wiW, out float pdf)
 {
@@ -189,7 +181,7 @@ Spectrum sampleBSDF(in BSDF bsdf, in vec3 woW, in vec2 u, out vec3 wiW, out floa
 	//transform woW, wiW to local Coordinates
 	vec3 wo = bsdf.worldToLocal * woW;
 	vec3 wi;
-	switch(bsdf.bxdf)
+	switch(bsdf.bxdfs[0].type)
 	{
 	case BXDF_LAMBERTIAN_REFLECTION:
 	{
