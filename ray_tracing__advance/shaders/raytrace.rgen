@@ -95,7 +95,6 @@ void main()
 					);
 
 
-		
 		tempHitValues += prd.hitValue * beta;
 
 		prd.depth++;
@@ -105,8 +104,8 @@ void main()
 			{
 				if(prd.depth == 2)
 				{
-					tempHitValues = normalize(direction.xyz);
-					//tempHitValues = vec3(1.f,1.f,0.f);
+					//tempHitValues = normalize(direction.xyz);
+					tempHitValues = vec3(1.f,1.f,0.f);
 				}
 				else if(prd.depth == 1)
 				{
@@ -116,6 +115,7 @@ void main()
 
 			break;
 		}
+		
 		
 
 		// Possibly terminate the path with Russian roulette.
@@ -139,7 +139,10 @@ void main()
   }
   prd.hitValue = hitValues / NBSAMPLES;
 
+
   // Do accumulation over time
+  //if(pcRay.frame >= 0)
+  //if(false)
   if(pcRay.frame >= 0)
   {
     float a         = 1.0f / float(pcRay.frame + 1);

@@ -66,11 +66,12 @@ enum LightType
 void renderUI(HelloVulkan& helloVk)
 {
   bool changed = false;
+  auto& pc = helloVk.m_pcRaster;
 
   changed |= ImGuiH::CameraWidget();
   if(ImGui::CollapsingHeader("Light"))
   {
-    auto& pc = helloVk.m_pcRaster;
+    
 
     changed |= ImGui::RadioButton("Point", &pc.lightType, POINT_LIGHT);
     ImGui::SameLine();
@@ -109,6 +110,12 @@ void renderUI(HelloVulkan& helloVk)
       changed |= ImGui::SliderFloat("Radius", &pc.lightRadius, 1.f, 5.f);
     }
   }
+
+  //changed |= ImGui::SliderInt("Fr Type", &pc.fresnelType, 1, 2);
+  //changed |= ImGui::SliderFloat("Rough", &pc.rough, 0.f, 1.f);
+  //changed |= ImGui::SliderFloat("etaTD", &pc.etaTDielectric, 0.f, 5.f);
+  //changed |= ImGui::SliderFloat3("etaTC", &pc.etaTConductor.x, 0.f, 5.f);
+  //changed |= ImGui::SliderFloat3("kC", &pc.kConductor.x, 0.f, 5.f);
 
   changed |= ImGui::SliderInt("Max Frames", &helloVk.m_maxFrames, 1, 1000);
   if(changed)
@@ -315,7 +322,7 @@ int main(int argc, char** argv)
       // Switch between raster and ray tracing
       changed |= ImGui::Checkbox("Ray Tracer mode", &useRaytracer);
 
-	  changed |= ImGui::SliderInt("Debug Mode", &helloVk.m_pcRaster.debug,0,2);
+	  changed |= ImGui::SliderInt("Debug Mode", &helloVk.m_pcRaster.debug,0,3);
       if(changed)
         helloVk.resetFrame();
 

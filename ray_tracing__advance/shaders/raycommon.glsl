@@ -62,3 +62,4 @@ struct Aabb
 
 #define KIND_SPHERE 0
 #define KIND_CUBE 1
+

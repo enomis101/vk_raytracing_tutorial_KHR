@@ -88,6 +88,13 @@ public:
       100.f,                  // light intensity
       0,                      // light type
 	  5.f					  //radius
+
+	  //-1,					  //int   frame,
+	  //0,					  //int debug,
+
+	  ////0.1f,					  //float rough,
+	  ////1,					  //int fresnelType,
+	  ////1.3f					  //float etaTDielectric,
   };
 
   // Array of objects and instances in the scene

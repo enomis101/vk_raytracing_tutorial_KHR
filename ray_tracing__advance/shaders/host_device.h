@@ -95,6 +95,13 @@ struct PushConstantRaster
   float lightRadius;
   int   frame;
   int debug;
+
+  
+  //float rough;
+  //int fresnelType;
+  //float etaTDielectric;
+  //vec3 etaTConductor;
+  //vec3 kConductor;
 };
 
 
@@ -112,6 +119,13 @@ struct PushConstantRay
   int   frame;
   float lightRadius;
   int debug;
+
+  //int fresnelType;
+  //float rough;
+
+  //float etaTDielectric;
+  //vec3 etaTConductor;
+  //vec3 kConductor;
 };
 
 struct Vertex  // See ObjLoader, copy of VertexObj, could be compressed for device

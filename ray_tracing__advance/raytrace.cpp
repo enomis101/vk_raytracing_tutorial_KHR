@@ -434,6 +434,11 @@ void Raytracer::raytrace(const VkCommandBuffer& cmdBuf,
   m_pcRay.lightRadius		   = sceneConstants.lightRadius;
 
   m_pcRay.debug = sceneConstants.debug;
+  //m_pcRay.rough = sceneConstants.rough;
+  //m_pcRay.fresnelType = sceneConstants.fresnelType;
+  //m_pcRay.etaTDielectric = sceneConstants.etaTDielectric;
+  //m_pcRay.etaTConductor = sceneConstants.etaTConductor;
+  //m_pcRay.kConductor = sceneConstants.kConductor;
 
   std::vector<VkDescriptorSet> descSets{m_rtDescSet, sceneDescSet};
   vkCmdBindPipeline(cmdBuf, VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, m_rtPipeline);

@@ -39,9 +39,11 @@ void ObjLoader::loadModel(const std::string& filename)
   {
     MaterialObj m;
     m.ambient       = nvmath::vec3f(material.ambient[0], material.ambient[1], material.ambient[2]);
+	m.bxdf = 1;
 	if (filename.find("wuson") != std::string::npos)
 	{
 		m.diffuse = nvmath::vec3f(0.9, 0.1, 0.1);
+		m.bxdf = 2;
 	}
 	else
 	{
@@ -59,7 +61,7 @@ void ObjLoader::loadModel(const std::string& filename)
       m_textures.push_back(material.diffuse_texname);
       m.textureID = static_cast<int>(m_textures.size()) - 1;
     }
-	m.bxdf = 1;
+	
     m_materials.emplace_back(m);
   }
 
