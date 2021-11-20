@@ -139,9 +139,11 @@ int main(int argc, char** argv)
 {
   UNUSED(argc);
 
+  //TESTES
   //TestSampleSphere::Test();
   //TestSampleSphere::testRandom();
-  TestSampleSphere::TestReflectVector();
+  //TestSampleSphere::TestReflectVector();
+	
 
   // Setup GLFW window
   glfwSetErrorCallback(onErrorCallback);
@@ -286,16 +288,6 @@ int main(int argc, char** argv)
 
   helloVk.setupGlfwCallbacks(window);
   ImGui_ImplGlfw_InitForVulkan(window, true);
-
-  //#TEST check transform handedness
-  //for(int i = 0; i < helloVk.m_instances.size(); ++i)
-  //{
-  //  nvmath::mat4f mat   = helloVk.m_instances[i].transform;
-  //  nvmath::vec3f xAxis = mat * nvmath::vec4f(1.f, 0.f, 0.f, 0.f);
-  //  nvmath::vec3f yAxis = mat * nvmath::vec4f(0.f, 1.f, 0.f, 0.f);
-  //  nvmath::vec3f zAxis = mat * nvmath::vec4f(0.f, 0.f, 1.f, 0.f);
-  //  bool test = TestSampleSphere::TestHandedness(xAxis, yAxis, zAxis);
-  //}
 
   //Set initial light parameters
   helloVk.m_pcRaster.lightPosition = vec3(1.f, 5.f, 0.f);
