@@ -87,9 +87,7 @@ struct PushConstantRaster
   mat4  modelMatrix;  // matrix of the instance
   vec3  lightPosition;
   uint  objIndex;
-  vec3  lightDirection;
-  float lightSpotCutoff;
-  float lightSpotOuterCutoff;
+
   float lightIntensity;
   int   lightType;
   float lightRadius;
@@ -97,9 +95,9 @@ struct PushConstantRaster
   int debug;
 
   
-  //float rough;
-  //int fresnelType;
-  //float etaTDielectric;
+  float rough;
+  int fresnelType;
+  float etaTDielectric;
   //vec3 etaTConductor;
   //vec3 kConductor;
 };
@@ -111,19 +109,17 @@ struct PushConstantRay
   vec4  clearColor;
   vec3  lightPosition;
   uint  objIndex;
-  vec3  lightDirection;
-  float lightSpotCutoff;
-  float lightSpotOuterCutoff;
+
   float lightIntensity;
   int   lightType;
   int   frame;
   float lightRadius;
   int debug;
 
-  //int fresnelType;
-  //float rough;
+  int fresnelType;
+  float rough;
 
-  //float etaTDielectric;
+  float etaTDielectric;
   //vec3 etaTConductor;
   //vec3 kConductor;
 };

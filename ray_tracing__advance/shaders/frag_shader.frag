@@ -78,22 +78,22 @@ void main()
     lightIntensity      = pcRaster.lightIntensity / (lightDistance * lightDistance);
     LightDir            = normalize(lDir);
   }
-  else if(pcRaster.lightType == 1)
-  {
-    vec3  lDir          = pcRaster.lightPosition - i_worldPos;
-    float lightDistance = length(lDir);
-    lightIntensity      = pcRaster.lightIntensity / (lightDistance * lightDistance);
-    LightDir            = normalize(lDir);
-    float theta         = dot(LightDir, normalize(-pcRaster.lightDirection));
-    float epsilon       = pcRaster.lightSpotCutoff - pcRaster.lightSpotOuterCutoff;
-    float spotIntensity = clamp((theta - pcRaster.lightSpotOuterCutoff) / epsilon, 0.0, 1.0);
-    lightIntensity *= spotIntensity;
-  }
-  else  // Directional light
-  {
-    LightDir       = normalize(-pcRaster.lightDirection);
-    lightIntensity = 1.0;
-  }
+//  else if(pcRaster.lightType == 1)
+//  {
+//    vec3  lDir          = pcRaster.lightPosition - i_worldPos;
+//    float lightDistance = length(lDir);
+//    lightIntensity      = pcRaster.lightIntensity / (lightDistance * lightDistance);
+//    LightDir            = normalize(lDir);
+//    float theta         = dot(LightDir, normalize(-pcRaster.lightDirection));
+//    float epsilon       = pcRaster.lightSpotCutoff - pcRaster.lightSpotOuterCutoff;
+//    float spotIntensity = clamp((theta - pcRaster.lightSpotOuterCutoff) / epsilon, 0.0, 1.0);
+//    lightIntensity *= spotIntensity;
+//  }
+//  else  // Directional light
+//  {
+//    LightDir       = normalize(-pcRaster.lightDirection);
+//    lightIntensity = 1.0;
+//  }
 
   // Diffuse
   vec3 diffuse = computeDiffuse(mat, LightDir, N);

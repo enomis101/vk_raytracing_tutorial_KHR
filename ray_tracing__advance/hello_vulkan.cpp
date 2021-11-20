@@ -42,6 +42,25 @@
 
 extern std::vector<std::string> defaultSearchPaths;
 
+HelloVulkan::HelloVulkan()
+	: AppBaseVk()
+{
+	m_pcRaster.modelMatrix = { 1 };  // matrix of the instance
+	m_pcRaster.lightPosition = { 10.f, 15.f, 8.f };
+	m_pcRaster.objIndex = 0;
+	m_pcRaster.lightIntensity = 1.f;
+	m_pcRaster.lightType = 0;
+	m_pcRaster.lightRadius = 5.f;
+	m_pcRaster.frame = -1;
+	m_pcRaster.debug = 0;
+	m_pcRaster.rough = 0.1f;
+	m_pcRaster.fresnelType = 1;
+	m_pcRaster.etaTDielectric = 1.3f;
+	//m_pcRaster.etaTConductor;
+	//m_pcRaster.kConductor;
+
+}
+
 //--------------------------------------------------------------------------------------------------
 // Keep the handle on the device
 // Initialize the tool to do all our allocations: buffers, images
@@ -631,6 +650,19 @@ void TestSampleSphere::Test()
 
 
 
+}
+
+void TestSampleSphere::TestReflectVector()
+{
+	vec3 wo = { 0.652319, 0.601965, 0.460564 };
+	vec3 wi = { -0.611654, -0.721319, -0.324927 };
+	vec3 wh = { 0.219577, -0.644487, 0.732408 };
+
+	vec3 wi2 = Reflect(wo, wh);
+	float dotwowh = 2.f * dot(wo, wh);
+	bool b1 = sameHemisphere(wo, wh);
+	bool b2 = sameHemisphere(wo, wi);
+	bool b3 = sameHemisphere(wo, wi2);
 }
 
 void TestSampleSphere::testRandom()

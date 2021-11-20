@@ -60,6 +60,7 @@ using Allocator = nvvk::ResourceAllocatorDedicated;
 class HelloVulkan : public nvvk::AppBaseVk
 {
 public:
+	HelloVulkan();
   void setup(const VkInstance& instance, const VkDevice& device, const VkPhysicalDevice& physicalDevice, uint32_t queueFamily) override;
   void createDescriptorSetLayout();
   void createGraphicsPipeline();
@@ -78,24 +79,7 @@ public:
 
 
   // Information pushed at each draw call
-  PushConstantRaster m_pcRaster{
-      {1},                    // Identity matrix
-      {10.f, 15.f, 8.f},      // light position
-      0,                      // instance Id
-      {1, 0, 0},              // lightDirection;
-      {cos(deg2rad(12.5f))},  // lightSpotCutoff;
-      {cos(deg2rad(17.5f))},  // lightSpotOuterCutoff;
-      100.f,                  // light intensity
-      0,                      // light type
-	  5.f					  //radius
-
-	  //-1,					  //int   frame,
-	  //0,					  //int debug,
-
-	  ////0.1f,					  //float rough,
-	  ////1,					  //int fresnelType,
-	  ////1.3f					  //float etaTDielectric,
-  };
+  PushConstantRaster m_pcRaster;
 
   // Array of objects and instances in the scene
   std::vector<ObjModel>    m_objModel;   // Model on host
@@ -182,6 +166,12 @@ public:
 	  return string_format("| %f, %f, %f|\n| %f, %f, %f|\n| %f, %f, %f|", m[0][0], m[0][1], m[0][2], m[1][0], m[1][1], m[1][2], m[2][0], m[2][1], m[2][2]);
   }
 
+  static vec3 Reflect(const nvmath::vec3f& wo, const nvmath::vec3f& n) {
+	  return -wo + 2.f * dot(wo, n) * n;
+  }
+
+  static void TestReflectVector();
+
 
 #define Spectrum vec3
 
@@ -228,7 +218,7 @@ public:
 	  return std::abs(v.z);
   }
 
-  bool sameHemisphere( vec3 v1,  vec3 v2) {
+  static bool sameHemisphere( vec3 v1,  vec3 v2) {
 	  return v1.z * v2.z > 0;
   }
 

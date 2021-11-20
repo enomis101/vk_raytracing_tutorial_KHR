@@ -86,34 +86,34 @@ void renderUI(HelloVulkan& helloVk)
     {
       changed |= ImGui::SliderFloat3("Light Position", &pc.lightPosition.x, -20.f, 20.f);
     }
-    if(pc.lightType != POINT_LIGHT && pc.lightType != AREA_LIGHT)
-    {
-      changed |= ImGui::SliderFloat3("Light Direction", &pc.lightDirection.x, -1.f, 1.f);
-    }
+    //if(pc.lightType != POINT_LIGHT && pc.lightType != AREA_LIGHT)
+    //{
+    //  changed |= ImGui::SliderFloat3("Light Direction", &pc.lightDirection.x, -1.f, 1.f);
+    //}
     if(pc.lightType != INFINITE_LIGHT)
     {
       changed |= ImGui::SliderFloat("Light Intensity", &pc.lightIntensity, 0.f, 1.f);
     }
-    if(pc.lightType == SPOT_LIGHT)
-    {
-      float dCutoff    = rad2deg(acos(pc.lightSpotCutoff));
-      float dOutCutoff = rad2deg(acos(pc.lightSpotOuterCutoff));
-      changed |= ImGui::SliderFloat("Cutoff", &dCutoff, 0.f, 45.f);
-      changed |= ImGui::SliderFloat("OutCutoff", &dOutCutoff, 0.f, 45.f);
-      dCutoff = dCutoff > dOutCutoff ? dOutCutoff : dCutoff;
+    //if(pc.lightType == SPOT_LIGHT)
+    //{
+    //  float dCutoff    = rad2deg(acos(pc.lightSpotCutoff));
+    //  float dOutCutoff = rad2deg(acos(pc.lightSpotOuterCutoff));
+    //  changed |= ImGui::SliderFloat("Cutoff", &dCutoff, 0.f, 45.f);
+    //  changed |= ImGui::SliderFloat("OutCutoff", &dOutCutoff, 0.f, 45.f);
+    //  dCutoff = dCutoff > dOutCutoff ? dOutCutoff : dCutoff;
 
-      pc.lightSpotCutoff      = cos(deg2rad(dCutoff));
-      pc.lightSpotOuterCutoff = cos(deg2rad(dOutCutoff));
-    }
+    //  pc.lightSpotCutoff      = cos(deg2rad(dCutoff));
+    //  pc.lightSpotOuterCutoff = cos(deg2rad(dOutCutoff));
+    //}
     if(pc.lightType == AREA_LIGHT)
     {
       changed |= ImGui::SliderFloat("Radius", &pc.lightRadius, 1.f, 5.f);
     }
   }
 
-  //changed |= ImGui::SliderInt("Fr Type", &pc.fresnelType, 1, 2);
-  //changed |= ImGui::SliderFloat("Rough", &pc.rough, 0.f, 1.f);
-  //changed |= ImGui::SliderFloat("etaTD", &pc.etaTDielectric, 0.f, 5.f);
+  changed |= ImGui::SliderInt("Fr Type", &pc.fresnelType, 1, 2);
+  changed |= ImGui::SliderFloat("Rough", &pc.rough, 0.f, 1.f);
+  changed |= ImGui::SliderFloat("etaTD", &pc.etaTDielectric, 0.f, 5.f);
   //changed |= ImGui::SliderFloat3("etaTC", &pc.etaTConductor.x, 0.f, 5.f);
   //changed |= ImGui::SliderFloat3("kC", &pc.kConductor.x, 0.f, 5.f);
 
@@ -138,6 +138,10 @@ static int const SAMPLE_HEIGHT = 720;
 int main(int argc, char** argv)
 {
   UNUSED(argc);
+
+  //TestSampleSphere::Test();
+  //TestSampleSphere::testRandom();
+  TestSampleSphere::TestReflectVector();
 
   // Setup GLFW window
   glfwSetErrorCallback(onErrorCallback);
@@ -420,8 +424,7 @@ int main(int argc, char** argv)
   glfwDestroyWindow(window);
   glfwTerminate();
 
-  TestSampleSphere::Test();
-  //TestSampleSphere::testRandom();
+
 
   return 0;
 }

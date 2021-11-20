@@ -426,17 +426,19 @@ void Raytracer::raytrace(const VkCommandBuffer& cmdBuf,
   m_pcRay.clearColor           = clearColor;
   m_pcRay.lightPosition        = sceneConstants.lightPosition;
   m_pcRay.lightIntensity       = sceneConstants.lightIntensity;
-  m_pcRay.lightDirection       = sceneConstants.lightDirection;
-  m_pcRay.lightSpotCutoff      = sceneConstants.lightSpotCutoff;
-  m_pcRay.lightSpotOuterCutoff = sceneConstants.lightSpotOuterCutoff;
+
+  //m_pcRay.lightDirection       = sceneConstants.lightDirection;
+  //m_pcRay.lightSpotCutoff      = sceneConstants.lightSpotCutoff;
+  //m_pcRay.lightSpotOuterCutoff = sceneConstants.lightSpotOuterCutoff;
+
   m_pcRay.lightType            = sceneConstants.lightType;
   m_pcRay.frame                = sceneConstants.frame;
   m_pcRay.lightRadius		   = sceneConstants.lightRadius;
 
   m_pcRay.debug = sceneConstants.debug;
-  //m_pcRay.rough = sceneConstants.rough;
-  //m_pcRay.fresnelType = sceneConstants.fresnelType;
-  //m_pcRay.etaTDielectric = sceneConstants.etaTDielectric;
+  m_pcRay.rough = sceneConstants.rough;
+  m_pcRay.fresnelType = sceneConstants.fresnelType;
+  m_pcRay.etaTDielectric = sceneConstants.etaTDielectric;
   //m_pcRay.etaTConductor = sceneConstants.etaTConductor;
   //m_pcRay.kConductor = sceneConstants.kConductor;
 

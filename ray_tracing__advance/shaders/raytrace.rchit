@@ -133,6 +133,7 @@ Spectrum estimateDirect(in SurfaceInteraction si, in SphereAreaLight light, inou
 	vec2 uScattering = vec2(rnd(seed), rnd(seed));
 	f = BSDF_Sample_f(si.bsdf, si.wo, uScattering, wi, scatteringPdf);
 	f *= abs(dot(wi, si.n));
+
 	if (f != Spectrum(0.f) && scatteringPdf > 0) 
 	{
 		// Account for light contributions along new sampled direction _wi_
@@ -146,7 +147,6 @@ Spectrum estimateDirect(in SurfaceInteraction si, in SphereAreaLight light, inou
 			}
 			weight = powerHeuristic(1, scatteringPdf, 1, lightPdf);
 		}
-	
 
 		// Find intersection and compute transmittance
 		// cast shadow ray 
@@ -155,6 +155,10 @@ Spectrum estimateDirect(in SurfaceInteraction si, in SphereAreaLight light, inou
 		//vec3  origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
 		vec3  origin =  si.p + wi * tMin;
 		vec3  rayDir = wi;
+
+#define CHECK_LIGHT_OCCLUSION 0
+#if CHECK_LIGHT_OCCLUSION
+		//TODO verify if the check for occlusion is really needed
 		uint  flags  = gl_RayFlagsSkipClosestHitShaderEXT;
 		isShadowed   = true;
 		traceRayEXT(topLevelAS,  // acceleration structure
@@ -169,10 +173,10 @@ Spectrum estimateDirect(in SurfaceInteraction si, in SphereAreaLight light, inou
 					tMax,        // ray max range
 					1            // payload (location = 1)
 		);
-		///TEST
+#else
 		isShadowed   = false;
-
-		//TODO verify if the check for occlusion is needed
+#endif
+		
 		bool foundSurfaceInteraction = intersectSphere(light.position, light.radius, origin, rayDir) != -1 && !isShadowed;
 		// Add light contribution from material sampling
 		Spectrum Li = Spectrum(0.f);
@@ -216,9 +220,6 @@ void main()
 	// Indices of the triangle
 	ivec3 ind = indices.i[gl_PrimitiveID];
 
-
-
-
 	// Vertex of the triangle
 	Vertex v0 = vertices.v[ind.x];
 	Vertex v1 = vertices.v[ind.y];
@@ -238,14 +239,9 @@ void main()
 
 	cLight.inHitPosition = worldPos;
 
-
-
 	uint seed = prd.seed;  // We don't want to modify the PRD
 	// Possibly add emitted light at intersection
 	// in case bounce == 0 or previous bounce was specular
-
-
-
 
 	// Material of the object
 	int               matIdx = matIndices.i[gl_PrimitiveID];
@@ -255,7 +251,7 @@ void main()
 	BSDF bsdf;
 	vec3 nx,ny;
 	coordinateSystem(normal, nx, ny);
-	ConstructBSDF(mat, nx, ny, normal, bsdf);
+	ConstructBSDF(mat, pcRay, nx, ny, normal, bsdf);
 
 	SurfaceInteraction si = SurfaceInteraction(worldPos, -gl_WorldRayDirectionEXT, normal, bsdf);
 
@@ -264,10 +260,7 @@ void main()
 	if(!isSpecular(bsdf.bxdfs[0].reflectionType))
 	{
 		prd.hitValue = uniformSampleOneLight(si,seed);
-		//debugPrintfEXT("\nprd.hitValue %f  %f  %f", prd.hitValue.x, prd.hitValue.y, prd.hitValue.z);
 	}
-
-
 
 	// SAMPLE BSDF TO GET NEW PATH DIRECTION
 	vec3 wo = normalize(-gl_WorldRayDirectionEXT);
@@ -275,35 +268,40 @@ void main()
 	float pdf;
 	vec2 u = vec2(rnd(seed), rnd(seed));
 	Spectrum f = BSDF_Sample_f(bsdf, wo, u, wi,pdf);
+
 	if(f == Spectrum(0.f) || pdf == 0.f)
 	{
 		prd.done      = 1;
-		//OVERRIDE VALUES ON DEBUG
+		//DEBUG CODE
 		if(pcRay.debug == DEBUG_RCHIT + 1)
 		{
 			if(f == Spectrum(0.f))
 			{
 				prd.hitValue = vec3(1.f,0.f,0.f);
+				prd.attenuation = Spectrum(1.f);
 			}
 			else if(pdf == 0.f)
 			{
 				prd.hitValue = vec3(0.f,1.f,0.f);
+				prd.attenuation = Spectrum(1.f);
 			}
 			else
 			{
 				prd.hitValue = vec3(0.f,0.f,1.f);
+				prd.attenuation = Spectrum(1.f);
 			}
 		}
 		return;
 	}
   
 	prd.attenuation *= f * abs(dot(wi, si.n)) / pdf;
+
 	prd.done      = 0;
 	prd.rayOrigin = worldPos;
 	prd.rayDir    = wi;
 
 
-	//OVERRIDE VALUES ON DEBUG
+	//DEBUG CODE
 	if(pcRay.debug == DEBUG_RCHIT)
 	{
 //		if(abs(distance(wi,vec3(1.f,0.f,0.f))) < 0.1f)
@@ -321,28 +319,36 @@ void main()
 //		}
 //
 
-
-		switch(mat.bxdf)
-		{
-			case BXDF_LAMBERTIAN_REFLECTION:
-			{
-				prd.hitValue = vec3(1.f,0.f,0.f);
-				break;
-			}
-			case BXDF_MICROFACET_REFLECTION:
-			{
-				prd.hitValue = vec3(0.f,1.f,0.f);
-				break;
-			}
-			default:
-			{
-				prd.hitValue = vec3(0.f,0.f,1.f);
-				break;
-			}
-		}
+//
+//		switch(mat.bxdf)
+//		{
+//			case BXDF_LAMBERTIAN_REFLECTION:
+//			{
+//				prd.hitValue = vec3(1.f,0.f,0.f);
+//				break;
+//			}
+//			case BXDF_MICROFACET_REFLECTION:
+//			{
+//				prd.hitValue = vec3(0.f,1.f,0.f);
+//				break;
+//			}
+//			default:
+//			{
+//				prd.hitValue = vec3(0.f,0.f,1.f);
+//				break;
+//			}
+//		}
+		//prd.done = 1;
+		//prd.attenuation = Spectrum(1.f);
 		
-		prd.done = 1;
-		prd.attenuation = Spectrum(1.f);
+		if( length(prd.attenuation)> 3.f)
+		{
+			//prd.hitValue = vec3(0.f,0.f,1.f);
+			//debugPrintfEXT("\nprd.hitValue %f  %f  %f", prd.hitValue.x, prd.hitValue.y, prd.hitValue.z);
+			//debugPrintfEXT("\n f %f  %f  %f", f.x, f.y, f.z);
+			//debugPrintfEXT("\nprd.attenuation %f  %f  %f", prd.attenuation.x, prd.attenuation.y, prd.attenuation.z);
+			//debugPrintfEXT("\npdf %f %f %f",pdf,  abs(dot(wi, si.n)), length(f));
+		}
 
 //		if(f == Spectrum(0.f))
 //		{

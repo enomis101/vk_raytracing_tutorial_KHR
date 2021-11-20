@@ -36,5 +36,5 @@ void main()
 {
   cLight.outLightDistance = 10000000;
   cLight.outIntensity     = 1.0;
-  cLight.outLightDir      = normalize(-pcRay.lightDirection);
+  //cLight.outLightDir      = normalize(-pcRay.lightDirection);
 }

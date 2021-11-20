@@ -98,23 +98,23 @@ void main()
     cLight.outLightDir      = normalize(lDir);
     cLight.outLightDistance = lightDistance;
   }
-  else if(pcRay.lightType == 1)
-  {
-    vec3 lDir               = pcRay.lightPosition - cLight.inHitPosition;
-    cLight.outLightDistance = length(lDir);
-    cLight.outIntensity     = pcRay.lightIntensity / (cLight.outLightDistance * cLight.outLightDistance);
-    cLight.outLightDir      = normalize(lDir);
-    float theta             = dot(cLight.outLightDir, normalize(-pcRay.lightDirection));
-    float epsilon           = pcRay.lightSpotCutoff - pcRay.lightSpotOuterCutoff;
-    float spotIntensity     = clamp((theta - pcRay.lightSpotOuterCutoff) / epsilon, 0.0, 1.0);
-    cLight.outIntensity *= spotIntensity;
-  }
-  else if(pcRay.lightType == 2) // Directional light
-  {
-    cLight.outLightDir      = normalize(-pcRay.lightDirection);
-    cLight.outIntensity     = 1.0;
-    cLight.outLightDistance = 10000000;
-  }
+//  else if(pcRay.lightType == 1)
+//  {
+//    vec3 lDir               = pcRay.lightPosition - cLight.inHitPosition;
+//    cLight.outLightDistance = length(lDir);
+//    cLight.outIntensity     = pcRay.lightIntensity / (cLight.outLightDistance * cLight.outLightDistance);
+//    cLight.outLightDir      = normalize(lDir);
+//    float theta             = dot(cLight.outLightDir, normalize(-pcRay.lightDirection));
+//    float epsilon           = pcRay.lightSpotCutoff - pcRay.lightSpotOuterCutoff;
+//    float spotIntensity     = clamp((theta - pcRay.lightSpotOuterCutoff) / epsilon, 0.0, 1.0);
+//    cLight.outIntensity *= spotIntensity;
+//  }
+//  else if(pcRay.lightType == 2) // Directional light
+//  {
+//    cLight.outLightDir      = normalize(-pcRay.lightDirection);
+//    cLight.outIntensity     = 1.0;
+//    cLight.outLightDistance = 10000000;
+//  }
   else	// Area light
   {
 	//debugPrintfEXT("My float is %f", 5.f);

@@ -159,7 +159,7 @@ float CosDPhi(const in vec3 wa, const in vec3 wb) {
 }
 
 vec3 Reflect(const in vec3 wo, const in vec3 n) {
-    return -wo + 2 * dot(wo, n) * n;
+    return -wo + 2.f * dot(wo, n) * n;
 }
 
 vec2 ConcentricSampleDisk(const in vec2 u) {
@@ -238,12 +238,12 @@ Spectrum EvaluateFresnelDielectric(in float cosThetaI, in float etaI,in float et
     }
 
     // Compute _cosThetaT_ using Snell's law
-    float SinThetaI = sqrt(max(0.f, 1.f - cosThetaI * cosThetaI));
-    float SinThetaT = etaI / etaT * SinThetaI;
+    float sinThetaI = sqrt(max(0.f, 1.f - cosThetaI * cosThetaI));
+    float sinThetaT = etaI / etaT * sinThetaI;
 
     // Handle total internal reflection
-    if (SinThetaT >= 1.f) return Spectrum(1.f);
-    float cosThetaT = sqrt(max(0.f, 1.f - SinThetaT * SinThetaT));
+    if (sinThetaT >= 1.f) return Spectrum(1.f);
+    float cosThetaT = sqrt(max(0.f, 1.f - sinThetaT * sinThetaT));
     float Rparl = ((etaT * cosThetaI) - (etaI * cosThetaT)) /
                   ((etaT * cosThetaI) + (etaI * cosThetaT));
     float Rperp = ((etaI * cosThetaI) - (etaT * cosThetaT)) /
@@ -501,7 +501,7 @@ vec3 MicrofacetDistribution_Sample_wh(const in MicrofacetDistribution distr, con
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //MAIN BSDF FUNCTIONS
-void ConstructBSDF(const in WaveFrontMaterial mat,  const in vec3 nx, const in vec3 ny, const in vec3 nz, out BSDF bsdf)
+void ConstructBSDF(const in WaveFrontMaterial mat, const in PushConstantRay pcRay, const in vec3 nx, const in vec3 ny, const in vec3 nz, out BSDF bsdf)
 {
 	//Local to World matrix has axis as column
 	mat3 localToWorld = mat3(nx,ny,nz);
@@ -523,42 +523,38 @@ void ConstructBSDF(const in WaveFrontMaterial mat,  const in vec3 nx, const in v
 			bsdf.bxdfsNum = 1;
 			bsdf.bxdfs[0].type = BXDF_MICROFACET_REFLECTION;
 			bsdf.bxdfs[0].reflectionType = BSDF_REFLECTION | BSDF_GLOSSY;
-			bsdf.bxdfs[0].R = Spectrum(0.f,8.f,8.f);
+			bsdf.bxdfs[0].R = Spectrum(0.f,0.f,8.f);
 
 			//Additional data are:
 			//TrowbridgeReitzDistribution:
-//			MicrofacetDistribution distr;
-//			bsdf.bxdfs[0].distr.type = TROWBRIDGEREITZ_DISTR;
-//			float alpha = TrowbridgeReitzDistribution_RoughnessToAlpha(pcRay.rough);
-//			bsdf.bxdfs[0].distr.alphax = alpha;
-//			bsdf.bxdfs[0].distr.alphay = alpha;
-//
-//			bsdf.bxdfs[0].fr.type = pcRay.fresnelType;
-//			switch(pcRay.fresnelType)
-//			{
-//				case FR_DIELECTRIC:
-//				{
-//					bsdf.bxdfs[0].fr.etaIDielectric = 1.f;
-//					bsdf.bxdfs[0].fr.etaTDielectric = pcRay.etaTDielectric;
-//					break;
-//				}
-//				case FR_CONDUCTOR:
-//				{
-//					bsdf.bxdfs[0].fr.etaIConductor = vec3(1.f);
-//					bsdf.bxdfs[0].fr.etaTConductor = pcRay.etaTConductor;
-//					bsdf.bxdfs[0].fr.kConductor = pcRay.kConductor;
-//					break;
-//				}
-//			}
-
 			bsdf.bxdfs[0].distr.type = TROWBRIDGEREITZ_DISTR;
-			//float alpha = TrowbridgeReitzDistribution_RoughnessToAlpha(0.1f);
-			float alpha = 0.1f;
-			bsdf.bxdfs[0].distr.alphax = alpha;
-			bsdf.bxdfs[0].distr.alphay = alpha;
-			bsdf.bxdfs[0].fr.type = FR_DIELECTRIC;
-			bsdf.bxdfs[0].fr.etaIDielectric = 1.f;
-			bsdf.bxdfs[0].fr.etaTDielectric = 1.6f;
+
+
+			bsdf.bxdfs[0].fr.type = pcRay.fresnelType;
+			switch(pcRay.fresnelType)
+			{
+				case FR_DIELECTRIC:
+				{
+					float alpha = TrowbridgeReitzDistribution_RoughnessToAlpha(pcRay.rough);
+					bsdf.bxdfs[0].distr.alphax = alpha;
+					bsdf.bxdfs[0].distr.alphay = alpha;
+
+					bsdf.bxdfs[0].fr.etaIDielectric = 1.f;
+					bsdf.bxdfs[0].fr.etaTDielectric = pcRay.etaTDielectric;
+					break;
+				}
+				case FR_CONDUCTOR:
+				{
+					bsdf.bxdfs[0].distr.alphax = pcRay.rough;
+					bsdf.bxdfs[0].distr.alphay = pcRay.rough;
+
+					bsdf.bxdfs[0].fr.etaIConductor = vec3(1.f);
+					bsdf.bxdfs[0].fr.etaTConductor = vec3(4.369683f, 2.916703f, 1.654701f);
+					bsdf.bxdfs[0].fr.kConductor = vec3(5.206434f, 4.231365f, 3.754947);
+					break;
+				}
+			}
+
 			break;
 		}
 	};
@@ -567,7 +563,6 @@ void ConstructBSDF(const in WaveFrontMaterial mat,  const in vec3 nx, const in v
 }
 
 //BSDF FUNCTIONS
-
 Spectrum BxDF_f(const in BxDF bxdf, const in vec3 wo, const in vec3 wi)
 {
 	Spectrum f;
@@ -597,19 +592,13 @@ Spectrum BxDF_f(const in BxDF bxdf, const in vec3 wo, const in vec3 wi)
 
 			wh = normalize(wh);
 			
-			//Fresnel fr = ConstructFresnel(bxdf);
 			//Spectrum F = EvaluateFresnel(bxdf.fr, dot(wi, Faceforward(wh, vec3(0,0,1))));
 			Spectrum F = EvaluateFresnel(bxdf.fr, dot(wi, wh));
-			//debugPrintfEXT("\nF %f  %f  %f", F.x, F.y, F.z);
-			//debugPrintfEXT("\nwi %f  %f  %f", wi.x, wi.y, wi.z);
 			
-			//MicrofacetDistribution distr = ConstructMicrofacetDistribution(bxdf);
 			float D = MicrofacetDistribution_D(bxdf.distr, wh);
 			float G = MicrofacetDistribution_G(bxdf.distr, wo, wi);
 			f =   bxdf.R * D * G * F / (4.f * cosThetaI * cosThetaO);
-			//debugPrintfEXT("\nf %f  %f", D, G);
-			//debugPrintfEXT("\nF %f  f %f", length(F), length(f));
-
+			break;
 		}
 	}
 	return f;
@@ -693,12 +682,10 @@ Spectrum BxDF_Sample_f(const in BxDF bxdf, const in vec3 wo, const in vec2 u, ou
 
 			//Sample microfacet orientation wh and reflected direction wi
 			vec3 wh = MicrofacetDistribution_Sample_wh(bxdf.distr, wo, u);
+			if (dot(wo, wh) < 0) return Spectrum(0.f);   // Should be rare
+
 			wi = Reflect(wo, wh);
-			if(!SameHemisphere(wo, wi))
-			{
-				wiOut = wi;
-				return Spectrum(0.f);
-			}
+			if(!SameHemisphere(wo, wi))	return Spectrum(0.f);	//ok if it happens
 
 
 			//Compute pdf of wi for microfacet reflection 

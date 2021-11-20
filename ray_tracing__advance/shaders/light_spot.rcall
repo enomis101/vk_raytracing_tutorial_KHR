@@ -34,12 +34,12 @@ layout(push_constant) uniform _PushConstantRay
 
 void main()
 {
-  vec3 lDir               = pcRay.lightPosition - cLight.inHitPosition;
-  cLight.outLightDistance = length(lDir);
-  cLight.outIntensity     = pcRay.lightIntensity / (cLight.outLightDistance * cLight.outLightDistance);
-  cLight.outLightDir      = normalize(lDir);
-  float theta             = dot(cLight.outLightDir, normalize(-pcRay.lightDirection));
-  float epsilon           = pcRay.lightSpotCutoff - pcRay.lightSpotOuterCutoff;
-  float spotIntensity     = clamp((theta - pcRay.lightSpotOuterCutoff) / epsilon, 0.0, 1.0);
-  cLight.outIntensity *= spotIntensity;
+//  vec3 lDir               = pcRay.lightPosition - cLight.inHitPosition;
+//  cLight.outLightDistance = length(lDir);
+//  cLight.outIntensity     = pcRay.lightIntensity / (cLight.outLightDistance * cLight.outLightDistance);
+//  cLight.outLightDir      = normalize(lDir);
+//  float theta             = dot(cLight.outLightDir, normalize(-pcRay.lightDirection));
+//  float epsilon           = pcRay.lightSpotCutoff - pcRay.lightSpotOuterCutoff;
+//  float spotIntensity     = clamp((theta - pcRay.lightSpotOuterCutoff) / epsilon, 0.0, 1.0);
+//  cLight.outIntensity *= spotIntensity;
 }

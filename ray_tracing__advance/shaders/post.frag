@@ -18,6 +18,8 @@
  */
 
 #version 450
+#extension GL_EXT_debug_printf : enable
+
 layout(location = 0) in vec2 outUV;
 layout(location = 0) out vec4 fragColor;
 
@@ -35,5 +37,4 @@ void main()
   vec2  uv    = outUV;
   float gamma = 1. / 2.2;
  fragColor   = pow(texture(noisyTxt, uv).rgba, vec4(gamma));
- //fragColor = vec4(0.f,1.f,0.f, 1.f);
 }
