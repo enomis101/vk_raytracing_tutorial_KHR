@@ -106,15 +106,25 @@ void main()
 			//DEBUG CODE
 			if(pcRay.debug == DEBUG_RGEN)
 			{
-				if(prd.depth == 2)
+//				if(prd.depth == 2)
+//				{
+//					//tempHitValues = normalize(direction.xyz);
+//					tempHitValues = vec3(1.f,0.f,0.f);
+//				}
+//				else if(prd.depth == 1)
+//				{
+//					tempHitValues = vec3(0.f,1.f,0.f);
+//				}
+
+				if( uni.lights[0].type == 1 )
 				{
-					//tempHitValues = normalize(direction.xyz);
-					tempHitValues = vec3(1.f,0.f,0.f);
+					tempHitValues = vec3(0.f,0.f,1.f);
 				}
-				else if(prd.depth == 1)
+				else if( uni.lights[0].type == 0 )
 				{
 					tempHitValues = vec3(0.f,1.f,0.f);
 				}
+
 			}
 
 			break;

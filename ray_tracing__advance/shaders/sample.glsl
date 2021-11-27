@@ -112,3 +112,26 @@ bool sampleSphere(in vec3 sphereCenter, in float sphereRadius, in mat4x3 sphereT
     pdf = 1.f / (2.f * PI * (1 - cosThetaMax));
 	return true;
 }
+
+bool sampleLight(const in Light l, in vec3 point, in vec2 u, out vec3 samplePoint, out vec3 sampleNormal, out float pdf)
+{
+	int lightType = int(l.type);
+	switch(lightType)
+	{
+		case LTYPE_AREA:
+		{
+			mat4x3 lightTransform = mat4x3(
+			vec3( 1.0, 0.0, 0.0),
+			vec3( 0.0, 1.0, 0.0),
+			vec3( 0.0, 0.0, 1.0),
+			vec3(l.position));
+			return sampleSphere(vec3(l.position), l.radius, lightTransform, point, u, samplePoint, sampleNormal, pdf);
+		}
+		case LTYPE_INFINITE:
+		{
+			//TODO add sample dir
+			break;
+		}
+	}
+	return false;
+}

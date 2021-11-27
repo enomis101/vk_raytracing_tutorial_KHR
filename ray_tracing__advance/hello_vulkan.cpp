@@ -46,11 +46,7 @@ HelloVulkan::HelloVulkan()
 	: AppBaseVk()
 {
 	m_pcRaster.modelMatrix = { 1 };  // matrix of the instance
-	m_pcRaster.lightPosition = { 10.f, 15.f, 8.f };
 	m_pcRaster.objIndex = 0;
-	m_pcRaster.lightIntensity = 1.f;
-	m_pcRaster.lightType = 0;
-	m_pcRaster.lightRadius = 5.f;
 	m_pcRaster.frame = -1;
 	m_pcRaster.debug = 0;
 	m_pcRaster.rough = 0.1f;
@@ -91,6 +87,10 @@ void HelloVulkan::updateUniformBuffer(const VkCommandBuffer& cmdBuf)
   hostUBO.viewProj    = proj * view;
   hostUBO.viewInverse = nvmath::invert(view);
   hostUBO.projInverse = nvmath::invert(proj);
+  for (int i = 0; i < NUM_LIGHTS; i++)
+  {
+	  hostUBO.lights[i] = lights[i];
+  }
 
   // UBO on the device, and what stages access it.
   VkBuffer deviceUBO      = m_bGlobals.buffer;
@@ -588,16 +588,16 @@ void HelloVulkan::createImplictBuffers()
 
 void HelloVulkan::modifyObjTransform()
 {
-	nvmath::mat4f lightTransf = nvmath::translation_mat4(m_pcRaster.lightPosition);
+	//nvmath::mat4f lightTransf = nvmath::translation_mat4(m_pcRaster.lightPosition);
 
-	for (ObjInstance& inst : m_instances)
-	{
-		if (inst.objIndex == 3)
-		{
-			inst.transform = lightTransf;
-		}
-	}
-	m_raytrace.createTopLevelAS(m_instances, m_implObjects, true);
+	//for (ObjInstance& inst : m_instances)
+	//{
+	//	if (inst.objIndex == 3)
+	//	{
+	//		inst.transform = lightTransf;
+	//	}
+	//}
+	//m_raytrace.createTopLevelAS(m_instances, m_implObjects, true);
 }
 
 void TestSampleSphere::CoordinateSystem(const nvmath::vec3f& v1, nvmath::vec3f& v2, nvmath::vec3f& v3) 

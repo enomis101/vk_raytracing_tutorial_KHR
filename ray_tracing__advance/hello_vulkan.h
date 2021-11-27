@@ -99,6 +99,8 @@ public:
   void resetFrame();
   void updateFrame();
 
+  Light lights[NUM_LIGHTS];
+
   nvvk::Buffer m_bGlobals;  // Device-Host of the camera matrices
   nvvk::Buffer m_bObjDesc;  // Device buffer of the OBJ descriptions
 

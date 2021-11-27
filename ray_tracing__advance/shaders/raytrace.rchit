@@ -53,7 +53,7 @@ layout(push_constant) uniform _PushConstantRay { PushConstantRay pcRay; };
 
 layout(location = 3) callableDataEXT rayLight cLight;
 
-Spectrum estimateDirect(in SurfaceInteraction si, in SphereAreaLight light, inout uint seed)
+Spectrum estimateDirect(in SurfaceInteraction si, in Light light, inout uint seed)
 {
     Spectrum Ld = Spectrum(0.f);
     // Sample light source with multiple importance sampling
@@ -64,7 +64,7 @@ Spectrum estimateDirect(in SurfaceInteraction si, in SphereAreaLight light, inou
 	vec3 sampleNormal;
 	Spectrum Li;
 
-	if(sampleSphere(light.position, light.radius, light.transform, si.p, uLight, samplePoint, sampleNormal, lightPdf))
+	if(sampleLight(light, si.p, uLight, samplePoint, sampleNormal, lightPdf))
 	{
 		Li = Spectrum(light.intensity);
 	}
@@ -141,7 +141,7 @@ Spectrum estimateDirect(in SurfaceInteraction si, in SphereAreaLight light, inou
 		float weight = 1;
 		if (!sampledSpecular) 
 		{
-			lightPdf = spherePdf(light.position, light.radius, si.p, wi);
+			lightPdf = spherePdf(vec3(light.position), light.radius, si.p, wi);
 			if (lightPdf == 0) 
 			{
 				return Ld;
@@ -178,7 +178,7 @@ Spectrum estimateDirect(in SurfaceInteraction si, in SphereAreaLight light, inou
 		isShadowed   = false;
 #endif
 		
-		bool foundSurfaceInteraction = intersectSphere(light.position, light.radius, origin, rayDir) != -1 && !isShadowed;
+		bool foundSurfaceInteraction = intersectSphere(vec3(light.position), light.radius, origin, rayDir) != -1 && !isShadowed;
 		// Add light contribution from material sampling
 		Spectrum Li = Spectrum(0.f);
 	 
@@ -200,12 +200,7 @@ return Ld;
 
 Spectrum uniformSampleOneLight(in SurfaceInteraction si, inout uint seed)
 {
-    mat4x3 lightTransform = mat4x3(
-        vec3( 1.0, 0.0, 0.0),
-        vec3( 0.0, 1.0, 0.0),
-        vec3( 0.0, 0.0, 1.0),
-		pcRay.lightPosition);
-	SphereAreaLight l = SphereAreaLight(pcRay.lightPosition, lightTransform, pcRay.lightRadius, pcRay.lightIntensity);
+	Light l = uni.lights[0];
 	return estimateDirect(si, l, seed);
 }
 
@@ -301,14 +296,16 @@ void main()
 	prd.rayOrigin = worldPos;
 	prd.rayDir    = wi;
 
-
 	//DEBUG CODE
 	if(pcRay.debug == DEBUG_RCHIT)
 	{
-		vec4 origin    = uni.viewInverse * vec4(0, 0, 0, 1);
-		if( origin != vec4(0.f) )
+		if( uni.lights[0].type == 1.f )
 		{
 			prd.hitValue = vec3(0.f,0.f,1.f);
+		}
+		else if( uni.lights[0].type == 0.f )
+		{
+			prd.hitValue = vec3(0.f,1.f,0.f);
 		}
 
 		prd.done = 1;

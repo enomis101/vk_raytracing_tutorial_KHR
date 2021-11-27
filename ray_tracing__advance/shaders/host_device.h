@@ -73,15 +73,21 @@ struct ObjDesc
   uint64_t materialIndexAddress;  // Address of the triangle material index buffer
 };
 
+#define NUM_LIGHTS 2
+
+#define LTYPE_AREA 1
+#define LTYPE_INFINITE 2
+
 struct Light
 {
-	vec3 position;
-	vec3 direction;
+	vec4 position;
+	vec4 direction;
 
 	float intensity;
 	float radius;
 
-	int   type;
+	float   type;
+	float padding;
 };
 
 // Uniform buffer set at each frame
@@ -91,51 +97,76 @@ struct GlobalUniforms
   mat4 viewInverse;  // Camera inverse view matrix
   mat4 projInverse;  // Camera inverse projection matrix
 
-  static constexpr int nLights = 2;
-  Light lights[nLights];
+  Light lights[NUM_LIGHTS];
 };
+
+//// Push constant structure for the raster
+//struct PushConstantRaster
+//{
+//  mat4  modelMatrix;  // matrix of the instance
+//  uint  objIndex;
+//
+//  int   frame;
+//  int debug;
+//
+//  //float rough;
+//  //int fresnelType;
+//  //float etaTDielectric;
+//  //vec3 etaTConductor;
+//  //vec3 kConductor;
+//};
 
 // Push constant structure for the raster
 struct PushConstantRaster
 {
-  mat4  modelMatrix;  // matrix of the instance
-  vec3  lightPosition;
-  uint  objIndex;
+	mat4  modelMatrix;  // matrix of the instance
+	vec3  lightPosition;
+	uint  objIndex;
+	float lightIntensity;
+	int   lightType;
+	float lightRadius;
+	int   frame;
+	int debug;
 
-  float lightIntensity;
-  int   lightType;
-  float lightRadius;
-  int   frame;
-  int debug;
-
-  
-  float rough;
-  int fresnelType;
-  float etaTDielectric;
-  //vec3 etaTConductor;
-  //vec3 kConductor;
+	float rough;
+	int fresnelType;
+	float etaTDielectric;
+	//vec3 etaTConductor;
+	//vec3 kConductor;
 };
 
 
-// Push constant structure for the ray tracer
+//// Push constant structure for the ray tracer
+//struct PushConstantRay
+//{
+//  vec4  clearColor;
+//  uint  objIndex;
+//
+//  int   frame;
+//  int debug;
+//
+//  //float rough;
+//  //int fresnelType;
+//  //float etaTDielectric;
+//  //vec3 etaTConductor;
+//  //vec3 kConductor;
+//};
+
 struct PushConstantRay
 {
-  vec4  clearColor;
-  vec3  lightPosition;
-  uint  objIndex;
-
-  float lightIntensity;
-  int   lightType;
-  int   frame;
-  float lightRadius;
-  int debug;
-
-  int fresnelType;
-  float rough;
-
-  float etaTDielectric;
-  //vec3 etaTConductor;
-  //vec3 kConductor;
+	vec4  clearColor;
+	vec3  lightPosition;
+	uint  objIndex;
+	float lightIntensity;
+	int   lightType;
+	int   frame;
+	float lightRadius;
+	int debug;
+	int fresnelType;
+	float rough;
+	float etaTDielectric;
+	//vec3 etaTConductor;
+	//vec3 kConductor;
 };
 
 struct Vertex  // See ObjLoader, copy of VertexObj, could be compressed for device
