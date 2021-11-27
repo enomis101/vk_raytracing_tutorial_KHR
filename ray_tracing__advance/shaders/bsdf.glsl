@@ -523,7 +523,7 @@ void ConstructBSDF(const in WaveFrontMaterial mat, const in PushConstantRay pcRa
 			bsdf.bxdfsNum = 1;
 			bsdf.bxdfs[0].type = BXDF_MICROFACET_REFLECTION;
 			bsdf.bxdfs[0].reflectionType = BSDF_REFLECTION | BSDF_GLOSSY;
-			bsdf.bxdfs[0].R = Spectrum(0.f,0.f,8.f);
+			bsdf.bxdfs[0].R = Spectrum(0.04f,0.04f,8.f);
 
 			//Additional data are:
 			//TrowbridgeReitzDistribution:
@@ -539,8 +539,10 @@ void ConstructBSDF(const in WaveFrontMaterial mat, const in PushConstantRay pcRa
 					bsdf.bxdfs[0].distr.alphax = alpha;
 					bsdf.bxdfs[0].distr.alphay = alpha;
 
-					bsdf.bxdfs[0].fr.etaIDielectric = 1.f;
-					bsdf.bxdfs[0].fr.etaTDielectric = pcRay.etaTDielectric;
+//					bsdf.bxdfs[0].fr.etaIDielectric = 1.f;
+//					bsdf.bxdfs[0].fr.etaTDielectric = pcRay.etaTDielectric;
+					bsdf.bxdfs[0].fr.etaIDielectric = 1.5f;
+					bsdf.bxdfs[0].fr.etaTDielectric = 1.f;
 					break;
 				}
 				case FR_CONDUCTOR:

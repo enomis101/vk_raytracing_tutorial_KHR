@@ -45,6 +45,7 @@ layout(buffer_reference, scalar) buffer MatIndices {int i[]; }; // Material ID f
 layout(set = 0, binding = eTlas) uniform accelerationStructureEXT topLevelAS;
 layout(set = 1, binding = eObjDescs, scalar) buffer ObjDesc_ { ObjDesc i[]; } objDesc;
 layout(set = 1, binding = eTextures) uniform sampler2D textureSamplers[];
+layout(set = 1, binding = eGlobals) uniform _GlobalUniforms { GlobalUniforms uni; };
 
 layout(push_constant) uniform _PushConstantRay { PushConstantRay pcRay; };
 // clang-format on
@@ -304,57 +305,18 @@ void main()
 	//DEBUG CODE
 	if(pcRay.debug == DEBUG_RCHIT)
 	{
-//		if(abs(distance(wi,vec3(1.f,0.f,0.f))) < 0.1f)
-//		{
-//			 vec2 uOffset = 2.f * u - vec2(1, 1);
-//
-//			if (uOffset.x == 0 && uOffset.y == 0)
-//			{
-//				prd.hitValue = vec3(1.f,1.f,0.f);
-//			}
-//			else
-//			{
-//				prd.hitValue = vec3(1.f,0.f,1.f);
-//			}
-//		}
-//
+		vec4 origin    = uni.viewInverse * vec4(0, 0, 0, 1);
+		if( origin != vec4(0.f) )
+		{
+			prd.hitValue = vec3(0.f,0.f,1.f);
+		}
 
-//
-//		switch(mat.bxdf)
-//		{
-//			case BXDF_LAMBERTIAN_REFLECTION:
-//			{
-//				prd.hitValue = vec3(1.f,0.f,0.f);
-//				break;
-//			}
-//			case BXDF_MICROFACET_REFLECTION:
-//			{
-//				prd.hitValue = vec3(0.f,1.f,0.f);
-//				break;
-//			}
-//			default:
-//			{
-//				prd.hitValue = vec3(0.f,0.f,1.f);
-//				break;
-//			}
-//		}
-		//prd.done = 1;
-		//prd.attenuation = Spectrum(1.f);
+		prd.done = 1;
+		prd.attenuation = Spectrum(1.f);
 		
 		if( length(prd.attenuation)> 3.f)
 		{
 			//prd.hitValue = vec3(0.f,0.f,1.f);
-			//debugPrintfEXT("\nprd.hitValue %f  %f  %f", prd.hitValue.x, prd.hitValue.y, prd.hitValue.z);
-			//debugPrintfEXT("\n f %f  %f  %f", f.x, f.y, f.z);
-			//debugPrintfEXT("\nprd.attenuation %f  %f  %f", prd.attenuation.x, prd.attenuation.y, prd.attenuation.z);
-			//debugPrintfEXT("\npdf %f %f %f",pdf,  abs(dot(wi, si.n)), length(f));
 		}
-
-//		if(f == Spectrum(0.f))
-//		{
-//			prd.hitValue = vec3(1.f,0.f,1.f);;
-//		}
-		
-		//prd.rayDir = reflect(gl_WorldRayDirectionEXT, normal);
 	}
 }

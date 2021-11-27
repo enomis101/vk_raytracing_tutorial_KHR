@@ -73,12 +73,26 @@ struct ObjDesc
   uint64_t materialIndexAddress;  // Address of the triangle material index buffer
 };
 
+struct Light
+{
+	vec3 position;
+	vec3 direction;
+
+	float intensity;
+	float radius;
+
+	int   type;
+};
+
 // Uniform buffer set at each frame
 struct GlobalUniforms
 {
   mat4 viewProj;     // Camera view * projection
   mat4 viewInverse;  // Camera inverse view matrix
   mat4 projInverse;  // Camera inverse projection matrix
+
+  static constexpr int nLights = 2;
+  Light lights[nLights];
 };
 
 // Push constant structure for the raster

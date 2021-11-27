@@ -34,7 +34,14 @@ pushc;
 void main()
 {
 
-  vec2  uv    = outUV;
-  float gamma = 1. / 2.2;
- fragColor   = pow(texture(noisyTxt, uv).rgba, vec4(gamma));
+	vec2  uv    = outUV;
+	float gamma = 1. / 2.2;
+	vec4 tex = texture(noisyTxt, uv).rgba;
+
+	fragColor   = pow(tex, vec4(gamma));
+	if(vec3(tex) != vec3(0.f) && (tex.x > 1.f || tex.y > 1.f || tex.z > 1.f))
+	{
+		//debugPrintfEXT("\n tex %f %f %f fragcolor %f %f %f ",tex.x, tex.y, tex.z,fragColor.x, fragColor.y, fragColor.z);
+	}
+	//fragColor = tex/3.f;
 }

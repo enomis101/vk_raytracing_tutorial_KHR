@@ -45,6 +45,11 @@ void ObjLoader::loadModel(const std::string& filename)
 		m.diffuse = nvmath::vec3f(0.9, 0.1, 0.1);
 		m.bxdf = 2;
 	}
+	else if (filename.find("dragon") != std::string::npos)
+	{
+		m.diffuse = nvmath::vec3f(0.9, 0.1, 0.1);
+		m.bxdf = 2;
+	}
 	else
 	{
 		m.diffuse = nvmath::vec3f(material.diffuse[0], material.diffuse[1], material.diffuse[2]);

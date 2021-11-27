@@ -117,7 +117,7 @@ void renderUI(HelloVulkan& helloVk)
   //changed |= ImGui::SliderFloat3("etaTC", &pc.etaTConductor.x, 0.f, 5.f);
   //changed |= ImGui::SliderFloat3("kC", &pc.kConductor.x, 0.f, 5.f);
 
-  changed |= ImGui::SliderInt("Max Frames", &helloVk.m_maxFrames, 1, 1000);
+  changed |= ImGui::SliderInt("Max Frames", &helloVk.m_maxFrames, 1, 5000);
   if(changed)
     helloVk.resetFrame();
 }
@@ -223,10 +223,13 @@ int main(int argc, char** argv)
   helloVk.initGUI(0);  // Using sub-pass 0
 
   // Creation of the example
-  helloVk.loadModel(nvh::findFile("media/scenes/Medieval_building.obj", defaultSearchPaths, true));
+  //helloVk.loadModel(nvh::findFile("media/scenes/Medieval_building.obj", defaultSearchPaths, true));
   helloVk.loadModel(nvh::findFile("media/scenes/plane.obj", defaultSearchPaths, true));
-  helloVk.loadModel(nvh::findFile("media/scenes/wuson.obj", defaultSearchPaths, true),
-                    nvmath::scale_mat4(nvmath::vec3f(0.5f)) * nvmath::translation_mat4(nvmath::vec3f(0.0f, 0.0f, 6.0f)));
+  //helloVk.loadModel(nvh::findFile("media/scenes/wuson.obj", defaultSearchPaths, true),
+  //                  nvmath::scale_mat4(nvmath::vec3f(0.5f)) * nvmath::translation_mat4(nvmath::vec3f(0.0f, 0.0f, 6.0f)));
+
+  helloVk.loadModel(nvh::findFile("media/scenes/dragon.obj", defaultSearchPaths, true), 
+	  nvmath::rotation_mat4_x(deg2rad(90)) * nvmath::rotation_mat4_z(deg2rad(-90)) * nvmath::scale_mat4(nvmath::vec3f(0.1f)) * nvmath::translation_mat4(nvmath::vec3f(-5.0f, -5.0f, -2.0f)));
 
  // helloVk.loadModel(nvh::findFile("media/scenes/sphere.obj", defaultSearchPaths, true));
 
@@ -236,18 +239,18 @@ int main(int argc, char** argv)
   std::normal_distribution<float> disn(0.5f, 0.2f);
   auto                            wusonIndex = static_cast<int>(2);
 
-  for(int n = 0; n < 50; ++n)
-  {
-    ObjInstance inst;
-    inst.objIndex       = wusonIndex;
-    float         scale = fabsf(disn(gen));
-    nvmath::mat4f mat   = nvmath::translation_mat4(nvmath::vec3f{dis(gen), 0.f, dis(gen) + 6});
-    //    mat              = mat * nvmath::rotation_mat4_x(dis(gen));
-    mat            = mat * nvmath::scale_mat4(nvmath::vec3f(scale));
-    inst.transform = mat;
+  //for(int n = 0; n < 50; ++n)
+  //{
+  //  ObjInstance inst;
+  //  inst.objIndex       = wusonIndex;
+  //  float         scale = fabsf(disn(gen));
+  //  nvmath::mat4f mat   = nvmath::translation_mat4(nvmath::vec3f{dis(gen), 0.f, dis(gen) + 6});
+  //  //    mat              = mat * nvmath::rotation_mat4_x(dis(gen));
+  //  mat            = mat * nvmath::scale_mat4(nvmath::vec3f(scale));
+  //  inst.transform = mat;
 
-    helloVk.m_instances.push_back(inst);
-  }
+  //  helloVk.m_instances.push_back(inst);
+  //}
 
   //// Creation of implicit geometry
   //MaterialObj mat;
@@ -324,6 +327,7 @@ int main(int argc, char** argv)
 
       renderUI(helloVk);
 	  ImGui::SliderInt("Max FPS", &FPS, 1, 120);
+	  ImGui::Text("Frame %d", helloVk.m_pcRaster.frame);
       ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
       ImGuiH::Control::Info("", "", "(F10) Toggle Pane", ImGuiH::Control::Flags::Disabled);
       ImGuiH::Panel::End();
