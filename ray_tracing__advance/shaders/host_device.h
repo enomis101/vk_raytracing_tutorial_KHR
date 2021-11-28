@@ -120,17 +120,17 @@ struct GlobalUniforms
 struct PushConstantRaster
 {
 	mat4  modelMatrix;  // matrix of the instance
-	vec3  lightPosition;
+
 	uint  objIndex;
-	float lightIntensity;
-	int   lightType;
-	float lightRadius;
 	int   frame;
 	int debug;
 
-	float rough;
 	int fresnelType;
+
+	float rough;
 	float etaTDielectric;
+
+	
 	//vec3 etaTConductor;
 	//vec3 kConductor;
 };
@@ -155,16 +155,18 @@ struct PushConstantRaster
 struct PushConstantRay
 {
 	vec4  clearColor;
-	vec3  lightPosition;
+	vec4  clearColor2;
+	vec4  clearColor3;
+	vec4  clearColor4;
 	uint  objIndex;
-	float lightIntensity;
-	int   lightType;
 	int   frame;
-	float lightRadius;
 	int debug;
+
 	int fresnelType;
+
 	float rough;
 	float etaTDielectric;
+	
 	//vec3 etaTConductor;
 	//vec3 kConductor;
 };

@@ -116,6 +116,7 @@ void main()
 //					tempHitValues = vec3(0.f,1.f,0.f);
 //				}
 
+
 				if( uni.lights[0].type == 1 )
 				{
 					tempHitValues = vec3(0.f,0.f,1.f);

@@ -39,6 +39,14 @@
 #include "nvvk/renderpasses_vk.hpp"
 
 #include "nvvk/buffers_vk.hpp"
+//Serialization
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+// include this header to serialize vectors
+#include <boost/serialization/vector.hpp>
+#include <iostream>
+#include <sstream>
+#include <vector>
 
 extern std::vector<std::string> defaultSearchPaths;
 
@@ -54,6 +62,8 @@ HelloVulkan::HelloVulkan()
 	m_pcRaster.etaTDielectric = 1.3f;
 	//m_pcRaster.etaTConductor;
 	//m_pcRaster.kConductor;
+
+	//lights.reserve(NUM_LIGHTS);
 
 }
 
@@ -515,6 +525,8 @@ void HelloVulkan::updateFrame()
   m_pcRaster.frame++;
 }
 
+
+
 void HelloVulkan::resetFrame()
 {
   m_pcRaster.frame = -1;
@@ -684,4 +696,106 @@ void TestSampleSphere::testRandom()
 			std::cout << seed << std::endl;
 		}
 	}
+}
+
+
+using namespace boost::archive;
+
+template <typename Archive>
+void serialize(Archive& ar, nvmath::vec4f& v, const unsigned int version)
+{
+	ar& v.x;
+	ar& v.y;
+	ar& v.z;
+	ar& v.w;
+}
+
+template <typename Archive>
+void serialize(Archive& ar, nvmath::vec3f& v, const unsigned int version)
+{
+	ar& v.x;
+	ar& v.y;
+	ar& v.z;
+}
+
+template <typename Archive>
+void serialize(Archive& ar, Light& l, const unsigned int version)
+{
+	serialize(ar, l.position, version);
+	serialize(ar, l.direction, version);
+
+	ar& l.intensity;
+	ar& l.radius;
+	ar& l.type;
+}
+
+struct Camera
+{
+	nvmath::vec3f eye = nvmath::vec3f(10, 10, 10);
+	nvmath::vec3f ctr = nvmath::vec3f(0, 0, 0);
+	nvmath::vec3f up = nvmath::vec3f(0, 1, 0);
+	float         fov = 60.0f;
+};
+
+
+template <typename Archive>
+void serialize(Archive& ar, Camera& c, const unsigned int version)
+{
+	serialize(ar, c.eye, version);
+	serialize(ar, c.ctr, version);
+	serialize(ar, c.up, version);
+
+	ar& c.fov;
+}
+
+
+
+void HelloVulkan::saveScene()
+{
+	std::ofstream file;
+	file.open(m_saveFile);
+
+	nvh::CameraManipulator::Camera camera = CameraManip.getCamera();
+	Camera camera2;
+
+	camera2.eye = camera.eye;
+	camera2.ctr = camera.ctr;
+	camera2.up = camera.up;
+	camera2.fov = camera.fov;
+
+
+	text_oarchive oa{ file };
+
+	oa << lights;
+	oa << camera2;
+
+	file.close();
+}
+
+void HelloVulkan::loadScene()
+{
+	std::ifstream file;
+	file.open(m_saveFile);
+
+	
+	Camera camera2;
+
+	text_iarchive ia{ file };	
+	
+
+	ia >> lights;
+	ia >> camera2;
+
+	nvh::CameraManipulator::Camera camera;
+	
+	camera.eye = camera2.eye;
+	camera.ctr = camera2.ctr;
+	camera.up = camera2.up;
+	camera.fov = camera2.fov;
+
+
+
+	CameraManip.setCamera(camera, true);
+
+	file.close();
 }

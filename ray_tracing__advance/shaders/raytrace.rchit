@@ -141,6 +141,7 @@ Spectrum estimateDirect(in SurfaceInteraction si, in Light light, inout uint see
 		float weight = 1;
 		if (!sampledSpecular) 
 		{
+
 			lightPdf = spherePdf(vec3(light.position), light.radius, si.p, wi);
 			if (lightPdf == 0) 
 			{

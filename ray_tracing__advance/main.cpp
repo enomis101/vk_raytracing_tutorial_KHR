@@ -39,6 +39,8 @@
 #include <chrono>
 #include <thread>
 #include <ctime>  
+#include <filesystem>
+
 
 //////////////////////////////////////////////////////////////////////////
 #define UNUSED(x) (void)(x)
@@ -141,11 +143,9 @@ int main(int argc, char** argv)
 {
 	UNUSED(argc);
 
-	//TESTES
-	//TestSampleSphere::Test();
-	//TestSampleSphere::testRandom();
-	//TestSampleSphere::TestReflectVector();
-
+	//CWD
+	//auto prova = std::filesystem::current_path();
+	//std::cout << "Current working directory: " << prova << std::endl;
 
 	// Setup GLFW window
 	glfwSetErrorCallback(onErrorCallback);
@@ -233,6 +233,8 @@ int main(int argc, char** argv)
 	helloVk.loadModel(nvh::findFile("media/scenes/dragon.obj", defaultSearchPaths, true),
 		nvmath::rotation_mat4_x(deg2rad(90)) * nvmath::rotation_mat4_z(deg2rad(-90)) * nvmath::scale_mat4(nvmath::vec3f(0.1f)) * nvmath::translation_mat4(nvmath::vec3f(-5.0f, -5.0f, -2.0f)));
 
+	helloVk.loadScene();
+
 	// helloVk.loadModel(nvh::findFile("media/scenes/sphere.obj", defaultSearchPaths, true));
 
 	std::random_device              rd;         // Will be used to obtain a seed for the random number engine
@@ -269,6 +271,7 @@ int main(int argc, char** argv)
 	//helloVk.addImplMaterial(mat);
 	//helloVk.addImplCube({-6.1, 0, -6}, {-6, 10, 6}, 0);
 	//helloVk.addImplSphere({1, 2, 4}, 1.f, 1);
+
 
 
 	helloVk.initOffscreen();
@@ -410,6 +413,8 @@ int main(int argc, char** argv)
 
 	// Cleanup
 	vkDeviceWaitIdle(helloVk.getDevice());
+
+	helloVk.saveScene();
 
 	helloVk.destroyResources();
 	helloVk.destroy();
