@@ -63,8 +63,6 @@ HelloVulkan::HelloVulkan()
 	//m_pcRaster.etaTConductor;
 	//m_pcRaster.kConductor;
 
-	//lights.reserve(NUM_LIGHTS);
-
 }
 
 //--------------------------------------------------------------------------------------------------
